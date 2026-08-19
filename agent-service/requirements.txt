@@ -1,0 +1,19 @@
+# Web框架
+fastapi==0.124.4
+uvicorn[standard]==0.33.0
+
+# LangChain核心
+langchain-core==0.2.43
+langchain-openai==0.1.25
+
+# HTTP客户端（调用Spring后端）
+httpx==0.28.1
+
+# 环境变量管理
+python-dotenv==1.0.1
+
+# 定时任务（方案B：独立定时，不依赖Spring）
+apscheduler==3.11.2
+
+# 日志
+loguru==0.7.3

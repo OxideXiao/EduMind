@@ -1,0 +1,227 @@
+{
+  "quizzes": [
+    {
+      "title": "线性表基础测验",
+      "questions": [
+        {
+          "stem": "在长度为n的数组中，按下标访问第i个元素的时间复杂度是？",
+          "type": "single",
+          "difficulty": 1,
+          "nodeKey": "数组",
+          "answer": "A",
+          "analysis": "数组支持随机访问，通过下标可直接计算内存地址，时间复杂度为O(1)",
+          "options": [
+            { "label": "A", "content": "O(1)", "isCorrect": true },
+            { "label": "B", "content": "O(log n)", "isCorrect": false },
+            { "label": "C", "content": "O(n)", "isCorrect": false },
+            { "label": "D", "content": "O(n²)", "isCorrect": false }
+          ]
+        },
+        {
+          "stem": "链表相对于数组的主要优势是什么？",
+          "type": "single",
+          "difficulty": 1,
+          "nodeKey": "链表",
+          "answer": "C",
+          "analysis": "链表节点的插入和删除只需修改指针，时间复杂度为O(1)，而数组需要移动大量元素",
+          "options": [
+            { "label": "A", "content": "随机访问速度更快", "isCorrect": false },
+            { "label": "B", "content": "存储密度更高", "isCorrect": false },
+            { "label": "C", "content": "插入和删除操作效率更高", "isCorrect": true },
+            { "label": "D", "content": "内存占用更少", "isCorrect": false }
+          ]
+        },
+        {
+          "stem": "栈的特点是先进先出（FIFO）。",
+          "type": "judge",
+          "difficulty": 1,
+          "nodeKey": "栈",
+          "answer": "B",
+          "analysis": "栈的特点是后进先出（LIFO），队列的特点才是先进先出（FIFO）",
+          "options": [
+            { "label": "A", "content": "正确", "isCorrect": false },
+            { "label": "B", "content": "错误", "isCorrect": true }
+          ]
+        },
+        {
+          "stem": "队列在计算机系统中常用于什么场景？",
+          "type": "single",
+          "difficulty": 2,
+          "nodeKey": "队列",
+          "answer": "D",
+          "analysis": "操作系统的任务调度使用队列（就绪队列）来管理等待CPU的进程",
+          "options": [
+            { "label": "A", "content": "函数调用", "isCorrect": false },
+            { "label": "B", "content": "表达式求值", "isCorrect": false },
+            { "label": "C", "content": "括号匹配", "isCorrect": false },
+            { "label": "D", "content": "任务调度", "isCorrect": true }
+          ]
+        },
+        {
+          "stem": "双端队列允许在队列的两端进行插入和删除操作。",
+          "type": "judge",
+          "difficulty": 1,
+          "nodeKey": "双端队列",
+          "answer": "A",
+          "analysis": "双端队列（Deque）允许在队头和队尾都进行入队和出队操作，兼具栈和队列的特性",
+          "options": [
+            { "label": "A", "content": "正确", "isCorrect": true },
+            { "label": "B", "content": "错误", "isCorrect": false }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "树与遍历测验",
+      "questions": [
+        {
+          "stem": "深度为k的满二叉树，其节点总数是？",
+          "type": "single",
+          "difficulty": 2,
+          "nodeKey": "二叉树",
+          "answer": "B",
+          "analysis": "深度为k的满二叉树节点总数为2^k-1，这是一个等比数列求和的结果",
+          "options": [
+            { "label": "A", "content": "2^k", "isCorrect": false },
+            { "label": "B", "content": "2^k-1", "isCorrect": true },
+            { "label": "C", "content": "2^(k-1)", "isCorrect": false },
+            { "label": "D", "content": "k^2", "isCorrect": false }
+          ]
+        },
+        {
+          "stem": "二叉树的先序遍历顺序是：访问根 → 遍历左子树 → 遍历右子树。",
+          "type": "judge",
+          "difficulty": 1,
+          "nodeKey": "二叉树遍历",
+          "answer": "A",
+          "analysis": "先序遍历（PreOrder）的顺序确为：根→左→右",
+          "options": [
+            { "label": "A", "content": "正确", "isCorrect": true },
+            { "label": "B", "content": "错误", "isCorrect": false }
+          ]
+        },
+        {
+          "stem": "二叉搜索树（BST）中，任意节点的左子树中的所有节点值都（）该节点的值。",
+          "type": "single",
+          "difficulty": 2,
+          "nodeKey": "BST",
+          "answer": "A",
+          "analysis": "BST 的定义：左子树所有节点值 < 根节点值 < 右子树所有节点值",
+          "options": [
+            { "label": "A", "content": "小于", "isCorrect": true },
+            { "label": "B", "content": "大于", "isCorrect": false },
+            { "label": "C", "content": "等于", "isCorrect": false },
+            { "label": "D", "content": "无固定关系", "isCorrect": false }
+          ]
+        },
+        {
+          "stem": "堆是一种特殊的完全二叉树，大顶堆中父节点的值始终大于等于子节点的值。",
+          "type": "judge",
+          "difficulty": 2,
+          "nodeKey": "堆",
+          "answer": "A",
+          "analysis": "大顶堆（MaxHeap）的堆序性质：每个父节点值 ≥ 子节点值，根节点是最大值",
+          "options": [
+            { "label": "A", "content": "正确", "isCorrect": true },
+            { "label": "B", "content": "错误", "isCorrect": false }
+          ]
+        },
+        {
+          "stem": "哈夫曼树的构建是基于（）思想。",
+          "type": "single",
+          "difficulty": 3,
+          "nodeKey": "哈夫曼树",
+          "answer": "C",
+          "analysis": "哈夫曼树通过贪心策略每次选取权值最小的两个节点合并，以构建最优二叉树",
+          "options": [
+            { "label": "A", "content": "动态规划", "isCorrect": false },
+            { "label": "B", "content": "分治", "isCorrect": false },
+            { "label": "C", "content": "贪心算法", "isCorrect": true },
+            { "label": "D", "content": "回溯", "isCorrect": false }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "算法设计测验",
+      "questions": [
+        {
+          "stem": "贪心算法一定能得到全局最优解。",
+          "type": "judge",
+          "difficulty": 2,
+          "nodeKey": "贪心算法",
+          "answer": "B",
+          "analysis": "贪心算法不一定总能得到全局最优解，只有当问题具有贪心选择性质和最优子结构时才可行",
+          "options": [
+            { "label": "A", "content": "正确", "isCorrect": false },
+            { "label": "B", "content": "错误", "isCorrect": true }
+          ]
+        },
+        {
+          "stem": "动态规划算法的核心思想是什么？",
+          "type": "single",
+          "difficulty": 3,
+          "nodeKey": "动态规划",
+          "answer": "D",
+          "analysis": "动态规划通过状态转移方程将问题分解为重叠子问题，并利用备忘录避免重复计算",
+          "options": [
+            { "label": "A", "content": "每次选择当前最优解", "isCorrect": false },
+            { "label": "B", "content": "穷举所有可能情况", "isCorrect": false },
+            { "label": "C", "content": "将问题不断二分", "isCorrect": false },
+            { "label": "D", "content": "利用状态转移和备忘录解决重叠子问题", "isCorrect": true }
+          ]
+        },
+        {
+          "stem": "回溯法在搜索过程中，当发现当前选择不可能得到解时就回退，这种优化称为（）。",
+          "type": "single",
+          "difficulty": 3,
+          "nodeKey": "回溯法",
+          "answer": "B",
+          "analysis": "剪枝（Pruning）是回溯法中排除不可能分支的核心优化手段，能大幅减少搜索空间",
+          "options": [
+            { "label": "A", "content": "分支", "isCorrect": false },
+            { "label": "B", "content": "剪枝", "isCorrect": true },
+            { "label": "C", "content": "限界", "isCorrect": false },
+            { "label": "D", "content": "迭代", "isCorrect": false }
+          ]
+        },
+        {
+          "stem": "分支限界法通常使用队列或优先队列来组织搜索。",
+          "type": "judge",
+          "difficulty": 3,
+          "nodeKey": "分支限界",
+          "answer": "A",
+          "analysis": "分支限界法使用队列（FIFO）或优先队列（最小代价优先）来管理活节点表",
+          "options": [
+            { "label": "A", "content": "正确", "isCorrect": true },
+            { "label": "B", "content": "错误", "isCorrect": false }
+          ]
+        },
+        {
+          "stem": "对于同一问题，哪种算法策略通常能得到最优解？",
+          "type": "single",
+          "difficulty": 4,
+          "nodeKey": "算法综合",
+          "answer": "B",
+          "analysis": "动态规划通过最优子结构性质保证全局最优解，而贪心仅在特定条件下保证最优",
+          "options": [
+            { "label": "A", "content": "贪心算法总是能得到最优解", "isCorrect": false },
+            { "label": "B", "content": "动态规划能保证得到最优解", "isCorrect": true },
+            { "label": "C", "content": "回溯法总是比动态规划快", "isCorrect": false },
+            { "label": "D", "content": "分支限界法只适合求最大值问题", "isCorrect": false }
+          ]
+        }
+      ]
+    }
+  ],
+  "submissions": [
+    { "quizIndex": 0, "studentId": 101, "totalScore": 95.0, "correctRate": 100.0 },
+    { "quizIndex": 0, "studentId": 102, "totalScore": 70.0, "correctRate": 60.0 },
+    { "quizIndex": 0, "studentId": 103, "totalScore": 30.0, "correctRate": 20.0 },
+    { "quizIndex": 1, "studentId": 101, "totalScore": 90.0, "correctRate": 100.0 },
+    { "quizIndex": 1, "studentId": 102, "totalScore": 65.0, "correctRate": 60.0 },
+    { "quizIndex": 1, "studentId": 103, "totalScore": 35.0, "correctRate": 20.0 },
+    { "quizIndex": 2, "studentId": 101, "totalScore": 85.0, "correctRate": 80.0 },
+    { "quizIndex": 2, "studentId": 102, "totalScore": 45.0, "correctRate": 40.0 }
+  ]
+}

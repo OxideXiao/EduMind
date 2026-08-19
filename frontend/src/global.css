@@ -1,0 +1,425 @@
+/* ══════════════════════════════════════════════════════════════
+   智慧教学平台 全局样式
+   设计方向：温润儒雅 · 钢蓝 accent · 通透克制
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* 背景层 — 温白基底 */
+  --bg-root:        #f5f3ef;
+  --bg-surface:     #fefdfb;
+  --bg-elevated:    #ffffff;
+  --bg-hover:       #eeebe5;
+  --bg-muted:       #eae6df;
+
+  /* 文字层 */
+  --text-primary:   #1a1815;
+  --text-secondary: #6e6a63;
+  --text-muted:     #a39e96;
+  --text-inverse:   #ffffff;
+
+  /* 强调色：钢蓝（沉稳学术感） */
+  --accent:         #4f6d8c;
+  --accent-hover:   #5f80a2;
+  --accent-dim:     #a3bdd4;
+  --accent-light:   #eaf0f6;
+  --accent-glow:    rgba(79, 109, 140, 0.14);
+
+  /* 图谱掌握度色 */
+  --mastery-green:  #22c55e;
+  --mastery-yellow: #eab308;
+  --mastery-red:    #ef4444;
+  --mastery-gray:   #c5bfb6;
+  --mastery-recommend: #4f6d8c;
+
+  /* 功能色 */
+  --info:           #4f6d8c;
+  --success:        #22c55e;
+  --warning:        #eab308;
+  --danger:         #ef4444;
+
+  /* 边框 */
+  --border-default: #e5e0d8;
+  --border-strong:  #d4cec5;
+  --border-accent:  var(--accent-dim);
+
+  /* 阴影 */
+  --shadow-sm:      0 1px 3px rgba(26,24,21,0.04);
+  --shadow-card:    0 2px 10px rgba(26,24,21,0.05), 0 0 1px rgba(26,24,21,0.03);
+  --shadow-elevated: 0 8px 28px rgba(26,24,21,0.08), 0 0 1px rgba(26,24,21,0.04);
+  --shadow-glow:    0 0 28px var(--accent-glow);
+
+  /* 圆角 */
+  --radius-sm:      6px;
+  --radius-md:      10px;
+  --radius-lg:      16px;
+  --radius-xl:      24px;
+
+  /* 间距 */
+  --space-1:  4px;  --space-2:  8px;  --space-3:  12px;
+  --space-4:  16px; --space-5:  20px; --space-6:  24px;
+  --space-8:  32px; --space-10: 40px; --space-12: 48px;
+  --space-16: 64px; --space-20: 80px;
+
+  /* 动效 */
+  --duration-fast:   160ms;
+  --duration-normal: 240ms;
+  --duration-slow:   400ms;
+  --ease-out-expo:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 字体 */
+  --font-display:  'Noto Serif SC', 'Source Han Serif SC', 'STSong', serif;
+  --font-body:     'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:     'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* ── 丝滑滚动 ── */
+html { scroll-behavior: smooth; }
+
+/* ── 全局重置 ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body, #root { height: 100%; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  background: var(--bg-root);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── 极淡纸纹 ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -1; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── 滚动条 ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── 选中 ── */
+::selection { background: var(--accent-light); color: var(--accent); }
+
+/* ── 链接 ── */
+a { color: var(--accent); text-decoration: none; transition: color var(--duration-fast); }
+a:hover { color: var(--accent-hover); }
+
+/* ═══════════════════════════════════════════════════════════
+   动效
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: page-enter var(--duration-normal) var(--ease-out-expo); }
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-36px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fade-in-scale {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 109, 140, 0.3); }
+  50%      { box-shadow: 0 0 0 8px rgba(79, 109, 140, 0); }
+}
+
+@keyframes bell-bounce {
+  0%   { transform: scale(1); }
+  25%  { transform: scale(1.18); }
+  50%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes score-pop {
+  0%   { transform: scale(0.3); opacity: 0; }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes float-node {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+
+@keyframes moveInLeft {
+  0%   { opacity: 0; transform: translateX(-10rem); }
+  80%  { transform: translateX(1rem); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes moveInRight {
+  0%   { opacity: 0; transform: translateX(10rem); }
+  80%  { transform: translateX(-1rem); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes moveInBottom {
+  0%   { opacity: 0; transform: translateY(3rem); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   组件样式
+   ═══════════════════════════════════════════════════════════ */
+
+.card-branded {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: transform var(--duration-normal) var(--ease-out-expo),
+              box-shadow var(--duration-normal) var(--ease-out-expo);
+}
+.card-branded:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.btn-accent {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 26px;
+  font-family: var(--font-body); font-size: 14px; font-weight: 600;
+  color: #fff; background: var(--accent); border: none;
+  border-radius: var(--radius-md); cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out-expo);
+}
+.btn-accent:hover {
+  background: var(--accent-hover);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+.btn-accent:active { transform: translateY(0); }
+
+/* ── Hero 主按钮 — pill 动效按钮 ── */
+.hero-btn,
+.hero-btn:link,
+.hero-btn:visited {
+  text-transform: none;
+  text-decoration: none;
+  padding: 1.2rem 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+  background-color: #fff;
+  color: #1a1a2e;
+  border: none;
+  cursor: pointer;
+  height: auto;
+  will-change: transform;
+}
+
+.hero-btn:hover {
+  box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.18);
+  color: #1a1a2e !important;
+  border-color: transparent !important;
+}
+
+.hero-btn:active {
+  box-shadow: 0 0.4rem 1rem rgba(0, 0, 0, 0.12);
+}
+
+.hero-btn::after {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  width: 100%;
+  border-radius: 10rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  transition: all 0.4s;
+  background-color: #fff;
+}
+
+.hero-btn:hover::after {
+  transform: scaleX(1.4) scaleY(1.6);
+  opacity: 0;
+}
+
+.hero-btn-animated {
+  animation: moveInBottom 0.9s ease-out 1s backwards;
+}
+
+.divider-gradient {
+  height: 1px; border: none;
+  background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+  margin: var(--space-12) 0;
+}
+
+/* ── 固定导航栏 — sticky 响应式 ── */
+@media (max-width: 768px) {
+  .sticky-header {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .cta-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cta-left {
+    padding: 3.2rem 2.4rem !important;
+  }
+
+  .cta-left > div[style*='grid-template-columns'] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── 使用流程 — Omnifood 风格 ── */
+.step-number {
+  font-size: 8.6rem;
+  font-weight: 600;
+  color: #ddd;
+  margin-bottom: 1.2rem;
+  line-height: 1;
+}
+
+.step-img-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-img-box::before,
+.step-img-box::after {
+  content: '';
+  display: block;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.step-img-box::before {
+  width: 60%;
+  padding-bottom: 60%;
+  background-color: #fdf2e9;
+  z-index: -2;
+}
+
+.step-img-box::after {
+  width: 45%;
+  padding-bottom: 45%;
+  background-color: #fae5d3;
+  z-index: -1;
+}
+
+.step-img-box .step-icon {
+  width: 30%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.2rem;
+  color: #e67e22;
+}
+
+/* ── CTA — Omnifood 风格 ── */
+.cta-left {
+  background-image: linear-gradient(to right bottom, #eb984e, #e67e22);
+}
+
+/* 表单标签 */
+.cta-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: inherit;
+}
+
+/* 表单输入框 */
+.cta-input.ant-input,
+.cta-input .ant-input {
+  height: 48px;
+  padding: 12px;
+  font-size: 18px;
+  font-family: inherit;
+  color: #45260a;
+  border: none;
+  background-color: #fdf2e9;
+  border-radius: 9px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.cta-input.ant-input::placeholder,
+.cta-input .ant-input::placeholder {
+  color: #aaa;
+}
+.cta-input.ant-input:focus,
+.cta-input .ant-input:focus,
+.cta-input.ant-input-focused,
+.cta-input.ant-input-affix-wrapper-focused {
+  outline: none;
+  box-shadow: 0 0 0 0.8rem rgba(253, 242, 233, 0.5);
+  border-color: transparent;
+}
+.cta-input.ant-input-affix-wrapper {
+  height: 48px;
+  padding: 0 12px;
+  background-color: #fdf2e9;
+  border: none;
+  border-radius: 9px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.cta-input.ant-input-affix-wrapper .ant-input {
+  padding: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+
+
+
+/* CTA 按钮 */
+.cta-btn {
+  width: 100%;
+}
+.cta-btn:hover,
+.cta-btn:focus {
+  background-color: #fff !important;
+  color: #555 !important;
+  border-color: #fff !important;
+}
+
+/* 右侧装饰区 */
+.cta-right {
+  background-image: linear-gradient(
+      to right bottom,
+      rgba(235, 152, 78, 0.35),
+      rgba(230, 126, 34, 0.35)
+    ),
+    url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600');
+  background-size: cover;
+  background-position: center;
+}
+
+/* ── 工具类 ── */
+.text-display    { font-family: var(--font-display); }
+.text-mono       { font-family: var(--font-mono); }
+.text-accent     { color: var(--accent); }
+.text-muted      { color: var(--text-muted); }
+.text-secondary  { color: var(--text-secondary); }

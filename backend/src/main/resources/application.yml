@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: SmartTeachingPlatform
+  profiles:
+    active: dev
+
+  # ===== PostgreSQL Datasource =====
+  datasource:
+    url: jdbc:postgresql://localhost:5432/teaching_ops
+    username: postgres
+    password: bumblebee1984
+    driver-class-name: org.postgresql.Driver
+
+  # ===== File Upload =====
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+# ===== MyBatis =====
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# ===== JWT =====
+jwt:
+  secret: ${JWT_SECRET:change-me-to-a-256-bit-secret-key-min-32-chars}
+  expiration: 259200000
+
+# ===== File Upload Path =====
+file:
+  upload-dir: ${FILE_UPLOAD_DIR:./uploads}
+
+# ===== Agent Proxy =====
+agent:
+  service:
+    base-url: ${AGENT_SERVICE_URL:http://localhost:8000}
+    internal-token: ${AGENT_INTERNAL_TOKEN:dev-internal-token}
+    allowed-ips: ${AGENT_ALLOWED_IPS:127.0.0.1,::1,0:0:0:0:0:0:0:1}
+
+# ===== Server =====
+server:
+  port: ${SERVER_PORT:8080}
+
+
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: resources

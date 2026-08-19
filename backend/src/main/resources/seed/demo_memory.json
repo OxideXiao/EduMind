@@ -1,0 +1,56 @@
+[
+  {
+    "studentId": 101,
+    "memoryJson": {
+      "version": 0,
+      "last_updated": "2026-06-09",
+      "summary": "该生掌握度优秀，学习积极主动",
+      "knowledge_mastery_trend": {
+        "二叉树遍历": { "current": 0.9, "trend": "stable" },
+        "动态规划": { "current": 0.75, "trend": "improving" },
+        "贪心算法": { "current": 0.85, "trend": "stable" }
+      },
+      "weak_points": [],
+      "strengths": ["二叉树遍历", "贪心算法"],
+      "learning_style_note": "偏好刷题，每周主动做额外练习",
+      "behavior_notes": ["连续7天活跃", "测验正确率稳定90%+"],
+      "suggested_focus": "保持当前节奏，可挑战更难的动态规划题目"
+    }
+  },
+  {
+    "studentId": 102,
+    "memoryJson": {
+      "version": 0,
+      "last_updated": "2026-06-09",
+      "summary": "该生整体中等，动态规划是明显短板",
+      "knowledge_mastery_trend": {
+        "二叉树遍历": { "current": 0.65, "trend": "improving" },
+        "动态规划": { "current": 0.3, "trend": "declining" },
+        "贪心算法": { "current": 0.55, "trend": "stable" }
+      },
+      "weak_points": ["动态规划"],
+      "strengths": ["二叉树遍历"],
+      "learning_style_note": "偏好视频学习，做题偏少",
+      "behavior_notes": ["上次动态规划测验只得了45分", "3天未查看学习资料"],
+      "suggested_focus": "集中攻克动态规划，建议每天至少2道DP题"
+    }
+  },
+  {
+    "studentId": 103,
+    "memoryJson": {
+      "version": 0,
+      "last_updated": "2026-06-09",
+      "summary": "该生多项指标预警，需要重点关注",
+      "knowledge_mastery_trend": {
+        "二叉树遍历": { "current": 0.4, "trend": "declining" },
+        "动态规划": { "current": 0.15, "trend": "declining" },
+        "贪心算法": { "current": 0.35, "trend": "declining" }
+      },
+      "weak_points": ["二叉树遍历", "动态规划", "贪心算法"],
+      "strengths": [],
+      "learning_style_note": "极少参与线上学习活动",
+      "behavior_notes": ["连续5天未登录", "完成率仅15%", "上次测验缺考"],
+      "suggested_focus": "急需重新建立学习习惯，从最基础的二叉树开始补课"
+    }
+  }
+]

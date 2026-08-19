@@ -1,0 +1,43 @@
+[
+  { "nodeName": "算法复杂度",   "nodeDesc": "时间复杂度与空间复杂度的基本概念",       "difficulty": 2, "sortOrder": 1,  "x": 0,   "y": 0   },
+  { "nodeName": "递归基础",     "nodeDesc": "递归思想与递归方程求解",                   "difficulty": 3, "sortOrder": 2,  "x": 0,   "y": 60  },
+  { "nodeName": "分治思想",     "nodeDesc": "分治策略的基本原理与应用",                 "difficulty": 3, "sortOrder": 3,  "x": 0,   "y": 120 },
+  { "nodeName": "暴力枚举",     "nodeDesc": "穷举法的适用场景与优化",                   "difficulty": 1, "sortOrder": 4,  "x": 0,   "y": 180 },
+  { "nodeName": "算法评估",     "nodeDesc": "算法正确性与效率的综合评价方法",           "difficulty": 2, "sortOrder": 5,  "x": 0,   "y": 240 },
+
+  { "nodeName": "数组",        "nodeDesc": "顺序存储结构的定义与操作",                 "difficulty": 1, "sortOrder": 6,  "x": 150, "y": 0   },
+  { "nodeName": "链表",        "nodeDesc": "链式存储结构的定义与操作",                 "difficulty": 2, "sortOrder": 7,  "x": 150, "y": 60  },
+  { "nodeName": "栈",          "nodeDesc": "栈的后进先出特性与应用",                   "difficulty": 2, "sortOrder": 8,  "x": 150, "y": 120 },
+  { "nodeName": "队列",        "nodeDesc": "队列的先进先出特性与应用",                 "difficulty": 2, "sortOrder": 9,  "x": 150, "y": 180 },
+  { "nodeName": "双端队列",    "nodeDesc": "双端队列的定义与操作",                     "difficulty": 3, "sortOrder": 10, "x": 150, "y": 240 },
+
+  { "nodeName": "二叉树",      "nodeDesc": "二叉树的定义、性质与存储结构",             "difficulty": 2, "sortOrder": 11, "x": 300, "y": 0   },
+  { "nodeName": "二叉树遍历",  "nodeDesc": "前序、中序、后序与层序遍历算法",           "difficulty": 3, "sortOrder": 12, "x": 300, "y": 60  },
+  { "nodeName": "BST",         "nodeDesc": "二叉搜索树的查找、插入与删除操作",         "difficulty": 3, "sortOrder": 13, "x": 300, "y": 120 },
+  { "nodeName": "堆",          "nodeDesc": "堆的定义与堆排序原理",                     "difficulty": 3, "sortOrder": 14, "x": 300, "y": 180 },
+  { "nodeName": "哈夫曼树",    "nodeDesc": "哈夫曼编码与最优二叉树构建",               "difficulty": 4, "sortOrder": 15, "x": 300, "y": 240 },
+
+  { "nodeName": "图的存储",    "nodeDesc": "邻接矩阵与邻接表的存储方式对比",           "difficulty": 2, "sortOrder": 16, "x": 450, "y": 0   },
+  { "nodeName": "DFS",         "nodeDesc": "深度优先搜索算法原理与实现",               "difficulty": 3, "sortOrder": 17, "x": 450, "y": 60  },
+  { "nodeName": "BFS",         "nodeDesc": "广度优先搜索算法原理与实现",               "difficulty": 3, "sortOrder": 18, "x": 450, "y": 120 },
+  { "nodeName": "最短路径",    "nodeDesc": "Dijkstra算法与Floyd算法的对比与应用",      "difficulty": 4, "sortOrder": 19, "x": 450, "y": 180 },
+  { "nodeName": "最小生成树",  "nodeDesc": "Prim算法与Kruskal算法的对比",              "difficulty": 4, "sortOrder": 20, "x": 450, "y": 240 },
+
+  { "nodeName": "顺序查找",    "nodeDesc": "线性查找的基本方法与改进",                 "difficulty": 1, "sortOrder": 21, "x": 600, "y": 0   },
+  { "nodeName": "二分查找",    "nodeDesc": "折半查找及其变体算法",                     "difficulty": 2, "sortOrder": 22, "x": 600, "y": 60  },
+  { "nodeName": "哈希表",      "nodeDesc": "哈希函数设计与冲突解决方法",               "difficulty": 3, "sortOrder": 23, "x": 600, "y": 120 },
+  { "nodeName": "平衡二叉树",  "nodeDesc": "AVL树与红黑树的基本操作与平衡调整",        "difficulty": 5, "sortOrder": 24, "x": 600, "y": 180 },
+  { "nodeName": "B+树概念",    "nodeDesc": "B+树的结构特点与数据库索引原理",           "difficulty": 4, "sortOrder": 25, "x": 600, "y": 240 },
+
+  { "nodeName": "冒泡排序",    "nodeDesc": "冒泡排序算法实现与优化",                   "difficulty": 1, "sortOrder": 26, "x": 750, "y": 0   },
+  { "nodeName": "快速排序",    "nodeDesc": "快速排序的分治实现与复杂度分析",           "difficulty": 3, "sortOrder": 27, "x": 750, "y": 60  },
+  { "nodeName": "归并排序",    "nodeDesc": "二路归并排序的实现与稳定性分析",           "difficulty": 3, "sortOrder": 28, "x": 750, "y": 120 },
+  { "nodeName": "堆排序",      "nodeDesc": "基于堆数据结构的排序算法",                 "difficulty": 3, "sortOrder": 29, "x": 750, "y": 180 },
+  { "nodeName": "外部排序概念","nodeDesc": "外排序的基本思想与多路归并技术",           "difficulty": 4, "sortOrder": 30, "x": 750, "y": 240 },
+
+  { "nodeName": "贪心算法",    "nodeDesc": "贪心选择策略与最优子结构性质",             "difficulty": 3, "sortOrder": 31, "x": 900, "y": 0   },
+  { "nodeName": "动态规划",    "nodeDesc": "状态转移方程建立与最优子结构分析",         "difficulty": 5, "sortOrder": 32, "x": 900, "y": 60  },
+  { "nodeName": "回溯法",      "nodeDesc": "回溯搜索策略与剪枝优化技巧",               "difficulty": 4, "sortOrder": 33, "x": 900, "y": 120 },
+  { "nodeName": "分支限界",    "nodeDesc": "分支限界法的搜索策略与上界下界估计",       "difficulty": 5, "sortOrder": 34, "x": 900, "y": 180 },
+  { "nodeName": "算法综合",    "nodeDesc": "多种算法设计方法的综合运用与对比分析",     "difficulty": 5, "sortOrder": 35, "x": 900, "y": 240 }
+]

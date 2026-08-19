@@ -1,0 +1,16 @@
+[
+  {
+    "resourceName": "动态规划入门教程",
+    "resourceType": "pdf",
+    "fileUrl": "https://files.demo.edu/dp_intro.pdf",
+    "description": "动态规划从入门到进阶的完整教程，含经典例题与详解",
+    "nodeKey": "动态规划"
+  },
+  {
+    "resourceName": "二叉树遍历动画演示",
+    "resourceType": "ppt",
+    "fileUrl": "https://files.demo.edu/tree_traversal.ppt",
+    "description": "前序、中序、后序与层序遍历的动画演示课件",
+    "nodeKey": "二叉树遍历"
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "course": {
+    "id": 1,
+    "courseName": "数据结构与算法",
+    "semester": "2025-2026-2",
+    "description": "计算机专业核心基础课，涵盖线性表、树、图、查找、排序、算法设计",
+    "teacherId": 2,
+    "inviteCode": "DEMO01"
+  },
+  "members": [
+    { "userId": 2,  "memberRole": "teacher" },
+    { "userId": 101, "memberRole": "student" },
+    { "userId": 102, "memberRole": "student" },
+    { "userId": 103, "memberRole": "student" }
+  ]
+}

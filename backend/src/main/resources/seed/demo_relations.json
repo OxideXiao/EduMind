@@ -1,0 +1,35 @@
+[
+  { "fromNodeName": "数组",       "toNodeName": "链表",       "relationType": "prerequisite" },
+  { "fromNodeName": "链表",       "toNodeName": "栈",         "relationType": "prerequisite" },
+  { "fromNodeName": "栈",         "toNodeName": "队列",       "relationType": "prerequisite" },
+  { "fromNodeName": "队列",       "toNodeName": "双端队列",   "relationType": "prerequisite" },
+
+  { "fromNodeName": "二叉树",     "toNodeName": "二叉树遍历", "relationType": "prerequisite" },
+  { "fromNodeName": "二叉树遍历", "toNodeName": "BST",        "relationType": "prerequisite" },
+  { "fromNodeName": "BST",        "toNodeName": "平衡二叉树", "relationType": "prerequisite" },
+  { "fromNodeName": "二叉树遍历", "toNodeName": "哈夫曼树",   "relationType": "related" },
+  { "fromNodeName": "二叉树",     "toNodeName": "堆",         "relationType": "related" },
+
+  { "fromNodeName": "图的存储",   "toNodeName": "DFS",        "relationType": "prerequisite" },
+  { "fromNodeName": "图的存储",   "toNodeName": "BFS",        "relationType": "prerequisite" },
+  { "fromNodeName": "DFS",        "toNodeName": "最短路径",   "relationType": "dependency" },
+  { "fromNodeName": "BFS",        "toNodeName": "最短路径",   "relationType": "dependency" },
+  { "fromNodeName": "最短路径",   "toNodeName": "最小生成树", "relationType": "related" },
+
+  { "fromNodeName": "顺序查找",   "toNodeName": "二分查找",   "relationType": "prerequisite" },
+  { "fromNodeName": "二分查找",   "toNodeName": "哈希表",     "relationType": "related" },
+
+  { "fromNodeName": "冒泡排序",   "toNodeName": "快速排序",   "relationType": "prerequisite" },
+  { "fromNodeName": "快速排序",   "toNodeName": "归并排序",   "relationType": "related" },
+  { "fromNodeName": "归并排序",   "toNodeName": "堆排序",     "relationType": "related" },
+  { "fromNodeName": "堆排序",     "toNodeName": "外部排序概念","relationType": "dependency" },
+
+  { "fromNodeName": "分治思想",   "toNodeName": "快速排序",   "relationType": "dependency" },
+  { "fromNodeName": "分治思想",   "toNodeName": "归并排序",   "relationType": "dependency" },
+  { "fromNodeName": "递归基础",   "toNodeName": "分治思想",   "relationType": "prerequisite" },
+
+  { "fromNodeName": "贪心算法",   "toNodeName": "动态规划",   "relationType": "prerequisite" },
+  { "fromNodeName": "动态规划",   "toNodeName": "回溯法",     "relationType": "related" },
+  { "fromNodeName": "回溯法",     "toNodeName": "分支限界",   "relationType": "dependency" },
+  { "fromNodeName": "分支限界",   "toNodeName": "算法综合",   "relationType": "dependency" }
+]

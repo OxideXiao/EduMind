@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(git add *)",
+      "PowerShell($env:PGPASSWORD = \"123456\"; & \"D:\\\\PostgreSQL\\\\bin\\\\psql.exe\" -U postgres -c \"CREATE DATABASE teaching_ops;\")",
+      "Read(//d/PostgreSQL/**)",
+      "PowerShell(& \"D:\\\\PostgreSQL\\\\bin\\\\pg_ctl.exe\" -D \"D:\\\\PostgreSQL\\\\data\" -l \"D:\\\\PostgreSQL\\\\logfile.log\" start)"
+    ]
+  }
+}

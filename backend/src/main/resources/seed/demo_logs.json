@@ -1,0 +1,19 @@
+[
+  { "studentId": 101, "actionType": "view_resource", "nodeKey": "动态规划",      "daysAgo": 0 },
+  { "studentId": 101, "actionType": "finish_quiz",   "nodeKey": "二叉树遍历",    "daysAgo": 1 },
+  { "studentId": 101, "actionType": "view_node",     "nodeKey": "BST",           "daysAgo": 1 },
+  { "studentId": 101, "actionType": "view_resource", "nodeKey": "贪心算法",      "daysAgo": 2 },
+  { "studentId": 101, "actionType": "finish_quiz",   "nodeKey": "数组",          "daysAgo": 2 },
+  { "studentId": 101, "actionType": "view_node",     "nodeKey": "DFS",           "daysAgo": 3 },
+  { "studentId": 101, "actionType": "view_resource", "nodeKey": "哈希表",        "daysAgo": 4 },
+  { "studentId": 101, "actionType": "chat_ai",       "nodeKey": null,            "daysAgo": 5 },
+  { "studentId": 101, "actionType": "login",         "nodeKey": null,            "daysAgo": 6 },
+  { "studentId": 101, "actionType": "view_node",     "nodeKey": "快速排序",      "daysAgo": 6 },
+
+  { "studentId": 102, "actionType": "view_resource", "nodeKey": "链表",          "daysAgo": 0 },
+  { "studentId": 102, "actionType": "finish_quiz",   "nodeKey": "二叉树遍历",    "daysAgo": 2 },
+  { "studentId": 102, "actionType": "view_node",     "nodeKey": "贪心算法",      "daysAgo": 4 },
+  { "studentId": 102, "actionType": "login",         "nodeKey": null,            "daysAgo": 5 },
+
+  { "studentId": 103, "actionType": "login",         "nodeKey": null,            "daysAgo": 4 }
+]

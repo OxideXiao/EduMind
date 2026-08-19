@@ -1,0 +1,12 @@
+[
+  { "id": 2,   "username": "teacher1", "realName": "陈老师", "email": "teacher2@demo.com", "password": "demo123456", "roleCode": "teacher" },
+  { "id": 101, "username": "zhangsan", "realName": "张三",   "email": "student1@demo.com", "password": "demo123456", "roleCode": "student" },
+  { "id": 102, "username": "lisi",     "realName": "李四",   "email": "student2@demo.com", "password": "demo123456", "roleCode": "student" },
+  { "id": 103, "username": "wangwu",   "realName": "王五",   "email": "student3@demo.com", "password": "demo123456", "roleCode": "student" },
+  { "id": 104, "username": "zhaoliu",  "realName": "赵六",   "email": "student4@demo.com", "password": "demo123456", "roleCode": "student" },
+  { "id": 105, "username": "sunqi",    "realName": "孙七",   "email": "student5@demo.com", "password": "demo123456", "roleCode": "student" },
+  { "id": 106, "username": "zhouba",   "realName": "周八",   "email": "student6@demo.com", "password": "demo123456", "roleCode": "student" },
+  { "id": 107, "username": "wujiu",    "realName": "吴九",   "email": "student7@demo.com", "password": "demo123456", "roleCode": "student" },
+  { "id": 108, "username": "zhengshi", "realName": "郑十",   "email": "student8@demo.com", "password": "demo123456", "roleCode": "student" },
+  { "id": 109, "username": "qianyi",   "realName": "钱一",   "email": "student9@demo.com", "password": "demo123456", "roleCode": "student" }
+]
