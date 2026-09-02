@@ -92,11 +92,12 @@ export const themeConfig: ThemeConfig = {
     },
     Menu: {
       itemBg: 'transparent',
-      itemSelectedBg: '#eaf0f6',
+      itemSelectedBg: 'transparent',
       itemSelectedColor: '#4f6d8c',
       itemColor: '#6e6a63',
       itemHoverColor: '#1a1815',
-      itemHoverBg: '#f5f3ef',
+      itemHoverBg: 'transparent',
+      itemActiveBg: 'transparent',
       subMenuItemBg: 'transparent',
     },
     Input: {

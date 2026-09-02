@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
+  App,
   Form,
   Input,
   Button,
   Typography,
-  message,
   Row,
   Col,
 } from 'antd';
@@ -77,6 +77,7 @@ export default function PortalPage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const { isAuthenticated, setAuth } = useAuth();
   const [form] = Form.useForm();
 
