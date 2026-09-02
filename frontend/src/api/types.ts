@@ -18,7 +18,88 @@ export interface Course {
   createdAt: string;
 }
 export interface CreateCourseParams { name: string; semester: string; description?: string }
-export interface CourseMember { userId: number; name: string; joinedAt: string }
+export interface CourseMember { userId: number; name: string; joinedAt: string; email?: string }
+
+// ═══ 教师端：导入 / 资源 / 题库 / 作业（对接后端预留） ═══
+export interface ImportFailureRow {
+  row: number;
+  reason: string;
+  raw?: string;
+}
+
+export interface ImportResult {
+  successCount: number;
+  failCount: number;
+  failures: ImportFailureRow[];
+  message?: string;
+}
+
+export interface TeachingResource {
+  id: number;
+  courseId: number;
+  name: string;
+  type: 'PDF' | 'VIDEO' | 'LINK' | 'OTHER';
+  url: string;
+  nodeIds: number[];
+  nodeNames?: string[];
+  createdAt: string;
+}
+
+export interface CreateResourceParams {
+  name: string;
+  type: TeachingResource['type'];
+  url: string;
+  nodeIds: number[];
+}
+
+export type QuestionType = 'SINGLE' | 'JUDGE' | 'MULTIPLE' | 'SHORT' | 'FILE';
+
+export interface BankQuestion {
+  id: number;
+  courseId: number;
+  content: string;
+  type: QuestionType;
+  options?: string[];
+  answer?: string;
+  score: number;
+  nodeIds: number[];
+  nodeNames?: string[];
+  createdAt: string;
+}
+
+export interface CreateBankQuestionParams {
+  content: string;
+  type: QuestionType;
+  options?: string[];
+  answer?: string;
+  score: number;
+  nodeIds: number[];
+}
+
+export type AssignmentSubmitType = 'ONLINE' | 'FILE' | 'MIXED';
+export type AssignmentStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED';
+
+export interface Assignment {
+  id: number;
+  courseId: number;
+  title: string;
+  description: string;
+  deadline?: string;
+  questionCount: number;
+  submitType: AssignmentSubmitType;
+  status: AssignmentStatus;
+  createdAt: string;
+}
+
+export interface CreateAssignmentParams {
+  title: string;
+  description: string;
+  deadline?: string;
+  questionCount: number;
+  submitType: AssignmentSubmitType;
+  questionIds?: number[];
+  publish?: boolean;
+}
 
 // ═══ 知识图谱 ═══
 // GraphNode / GraphEdge / GraphData / ViewRole 定义在 api/graph.ts 中 (dev1 版更完整)

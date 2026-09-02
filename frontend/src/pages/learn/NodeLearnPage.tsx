@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Button, Tag, Spin, message, Empty } from 'antd';
+import { App, Typography, Button, Tag, Spin, Empty } from 'antd';
 import { ArrowLeftOutlined, FilePdfOutlined, PlayCircleOutlined, LinkOutlined, FormOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import type { NodeLearningData } from '../../api/types';
 import { fetchNodeLearning } from '../../api/node';
@@ -16,6 +16,7 @@ const typeLabel: Record<string, string> = { PDF: 'PDF 课件', VIDEO: '视频讲
 export default function NodeLearnPage() {
   const { courseId, nodeId } = useParams<{ courseId: string; nodeId: string }>();
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const [data, setData] = useState<NodeLearningData | null>(null);
   const [loading, setLoading] = useState(true);
 

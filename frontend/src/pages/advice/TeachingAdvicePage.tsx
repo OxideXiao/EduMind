@@ -1,15 +1,21 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Typography, Button, Tag, Spin, message, Alert } from 'antd';
-import { BulbOutlined } from '@ant-design/icons';
+import { App, Typography, Spin, Button } from 'antd';
+import { BulbOutlined, ReloadOutlined, AlertOutlined } from '@ant-design/icons';
 import type { TeachingAdvice } from '../../api/types';
 import { generateTeachingAdvice } from '../../api/agent';
+import CoursePageHeader from '../../components/layout/CoursePageHeader';
 
-const priorityColor: Record<string, string> = { HIGH: 'red', MEDIUM: 'gold', LOW: 'default' };
-const priorityLabel: Record<string, string> = { HIGH: '高', MEDIUM: '中', LOW: '低' };
+const priorityClass: Record<string, string> = {
+  HIGH: 'advice-priority advice-priority--high',
+  MEDIUM: 'advice-priority advice-priority--medium',
+  LOW: 'advice-priority advice-priority--low',
+};
+const priorityLabel: Record<string, string> = { HIGH: '高优先', MEDIUM: '中优先', LOW: '低优先' };
 
 export default function TeachingAdvicePage() {
   const { courseId } = useParams<{ courseId: string }>();
+  const { message } = App.useApp();
   const [advice, setAdvice] = useState<TeachingAdvice | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -18,89 +24,94 @@ export default function TeachingAdvicePage() {
     try {
       const result = await generateTeachingAdvice(Number(courseId));
       setAdvice(result);
-    } catch { message.error('生成失败，请重试'); }
-    finally { setLoading(false); }
+    } catch {
+      message.error('生成失败，请重试');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={{ maxWidth: 780, margin: '0 auto' }}>
-      <Typography.Title level={2} style={{ fontFamily: 'var(--font-display)', marginBottom: 8, fontSize: 28 }}>
-        教学建议
-      </Typography.Title>
-      <Typography.Text style={{ color: 'var(--text-secondary)', fontSize: 15, display: 'block', marginBottom: 32 }}>
-        AI 根据全班学情数据生成个性化教学建议
-      </Typography.Text>
-
-      {/* ── 未生成 ── */}
-      {!advice && !loading && (
-        <div style={{
-          textAlign: 'center', padding: '80px 0',
-          background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
-          borderRadius: 'var(--radius-xl)',
-        }}>
-          <BulbOutlined style={{ fontSize: 44, color: 'var(--accent)', opacity: 0.4, marginBottom: 20, display: 'block' }} />
-          <Typography.Text style={{ color: 'var(--text-secondary)', fontSize: 15, display: 'block', marginBottom: 24 }}>
-            点击生成，AI 将分析全班学情并提供教学建议
-          </Typography.Text>
-          <Button type="primary" size="large" icon={<BulbOutlined />}
-            onClick={handleGenerate}
-            style={{ height: 48, padding: '0 36px', fontSize: 16, borderRadius: 'var(--radius-md)' }}>
-            生成教学建议
+    <div className="course-page course-page--advice page-enter">
+      <CoursePageHeader
+        title="教学建议"
+        description="AI 根据全班学情数据生成个性化教学建议"
+        badges={advice && !loading ? (
+          <span className="course-page-badge">
+            <BulbOutlined /> {advice.suggestions.length} 条建议
+          </span>
+        ) : undefined}
+        actions={advice && !loading ? (
+          <Button icon={<ReloadOutlined />} onClick={handleGenerate}>
+            重新生成
           </Button>
-        </div>
-      )}
+        ) : undefined}
+      />
 
-      {/* ── 生成中 ── */}
-      {loading && (
-        <div style={{
-          textAlign: 'center', padding: '80px 0',
-          background: 'var(--bg-surface)', border: '1px solid var(--accent-dim)',
-          borderRadius: 'var(--radius-xl)',
-        }}>
-          <Spin size="large" />
-          <Typography.Text style={{ color: 'var(--text-secondary)', display: 'block', marginTop: 20, fontSize: 15 }}>
-            AI 正在分析学情数据...
-          </Typography.Text>
-        </div>
-      )}
-
-      {/* ── 建议内容 ── */}
-      {advice && !loading && (
-        <>
-          <Alert message="问题诊断" description={advice.problem} type="warning" showIcon
-            style={{
-              background: 'var(--accent-light)', borderColor: 'var(--accent-dim)',
-              borderRadius: 'var(--radius-lg)', padding: '16px 20px', marginBottom: 28,
-            }} />
-
-          <Typography.Title level={4} style={{ fontFamily: 'var(--font-display)', marginBottom: 16, fontSize: 18 }}>
-            建议方案
-          </Typography.Title>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 48 }}>
-            {advice.suggestions.map((s, idx) => (
-              <div key={s.id} style={{
-                background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
-                borderTop: '3px solid var(--accent)', borderRadius: 'var(--radius-lg)',
-                padding: '20px 24px',
-                animation: `fade-in-scale var(--duration-fast) var(--ease-out-expo) ${idx * 80}ms both`,
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14 }}>
-                  <div style={{ display: 'flex', gap: 12, flex: 1 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, paddingTop: 1 }}>
-                      {String(s.id).padStart(2, '0')}
-                    </span>
-                    <Typography.Text style={{ color: 'var(--text-primary)', fontSize: 15, lineHeight: 1.7 }}>
-                      {s.content}
-                    </Typography.Text>
-                  </div>
-                  <Tag color={priorityColor[s.priority]} style={{ flexShrink: 0, borderRadius: 6 }}>
-                    {priorityLabel[s.priority]}
-                  </Tag>
-                </div>
-              </div>
-            ))}
+      {!advice && !loading && (
+        <section className="advice-hero course-page-panel course-page-panel--accent">
+          <div className="advice-hero__icon" aria-hidden>
+            <BulbOutlined />
           </div>
-        </>
+          <Typography.Title level={4} className="advice-hero__title">
+            尚未生成教学建议
+          </Typography.Title>
+          <Typography.Text className="advice-hero__desc">
+            点击下方按钮，AI 将分析全班掌握度、薄弱知识点与测验表现，输出可执行的教学方案
+          </Typography.Text>
+          <button type="button" className="btn-slide" onClick={handleGenerate}>
+            <span className="btn-slide__visible">生成教学建议</span>
+            <span className="btn-slide__invisible">AI 分析</span>
+          </button>
+        </section>
+      )}
+
+      {loading && (
+        <section className="advice-hero advice-hero--loading course-page-panel course-page-panel--accent">
+          <Spin size="large" />
+          <Typography.Text className="advice-hero__desc">
+            AI 正在分析学情数据…
+          </Typography.Text>
+          <Typography.Text className="advice-hero__hint">
+            预计数秒内完成
+          </Typography.Text>
+        </section>
+      )}
+
+      {advice && !loading && (
+        <div className="advice-result">
+          <section className="advice-diagnosis">
+            <div className="advice-diagnosis__label">
+              <AlertOutlined /> 问题诊断
+            </div>
+            <p className="advice-diagnosis__text">{advice.problem}</p>
+          </section>
+
+          <div className="advice-section-head">
+            <Typography.Title level={4} className="dashboard-panel__title">
+              建议方案
+            </Typography.Title>
+            <span className="dashboard-panel__subtitle">按优先级排列，可直接用于本周教学安排</span>
+          </div>
+
+          <ol className="advice-list">
+            {advice.suggestions.map((s, idx) => (
+              <li
+                key={s.id}
+                className="advice-item"
+                style={{ animationDelay: `${idx * 70}ms` }}
+              >
+                <span className="advice-item__index">{String(s.id).padStart(2, '0')}</span>
+                <div className="advice-item__body">
+                  <p className="advice-item__content">{s.content}</p>
+                </div>
+                <span className={priorityClass[s.priority] ?? priorityClass.LOW}>
+                  {priorityLabel[s.priority] ?? s.priority}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </div>
   );

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Button, Modal, Input, DatePicker, Form, Row, Col, Spin, message } from 'antd';
+import { App, Typography, Button, Modal, Input, DatePicker, Form, Row, Col, Spin } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import { PlusOutlined, UsergroupAddOutlined, RightOutlined, BookOutlined, NodeIndexOutlined, TeamOutlined, CopyOutlined } from '@ant-design/icons';
+import { RightOutlined, BookOutlined, NodeIndexOutlined, TeamOutlined, CopyOutlined } from '@ant-design/icons';
 import { useRole } from '../../hooks/useAuth';
 import BrandCard from '../../components/BrandCard';
 import EmptyState from '../../components/EmptyState';
@@ -10,6 +10,7 @@ import type { Course, CourseMember } from '../../api/types';
 import { fetchCourses, createCourse, joinCourse, fetchMembers } from '../../api/course';
 
 export default function CourseListPage() {
+  const { message } = App.useApp();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
@@ -112,16 +113,19 @@ export default function CourseListPage() {
         </Typography.Text>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center' }}>
           {isTeacher && (
-            <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}
-              style={{ height: 48, padding: '0 32px', fontSize: 16, borderRadius: 'var(--radius-md)' }}>
-              创建课程
-            </Button>
+            <button type="button" className="btn-slide btn-slide--wide" onClick={() => setCreateOpen(true)}>
+              <span className="btn-slide__visible">创建课程
+              </span>
+              <span className="btn-slide__invisible">构建知识图谱</span>
+            </button>
           )}
           {isStudent && (
-            <Button size="large" icon={<UsergroupAddOutlined />} onClick={() => setJoinOpen(true)}
-              style={{ height: 48, padding: '0 32px', fontSize: 16, borderRadius: 'var(--radius-md)' }}>
-              加入课程
-            </Button>
+            <button type="button" className="btn-slide" onClick={() => setJoinOpen(true)}>
+              <span className="btn-slide__visible">
+                加入课程
+              </span>
+              <span className="btn-slide__invisible">立即加入</span>
+            </button>
           )}
         </div>
       </section>
@@ -137,53 +141,73 @@ export default function CourseListPage() {
           {courses.map((course, idx) => (
             <Col key={course.id} xs={24} sm={12} lg={8}>
               <BrandCard
+                className="course-card"
                 onClick={() => navigate(`/courses/${course.id}/graph`)}
                 hover
-                style={{ padding: '28px 28px 24px', animation: `fade-in-scale var(--duration-slow) var(--ease-out-expo) ${idx * 60}ms both` }}
+                style={{ animation: `course-card-enter var(--duration-slow) var(--ease-out-expo) ${idx * 60}ms both` }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <BookOutlined style={{ fontSize: 22, color: 'var(--accent)', opacity: 0.7 }} />
-                  <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)',
-                    background: 'var(--bg-muted)', padding: '2px 8px', borderRadius: 4,
-                  }}>
-                    {course.semester}
-                  </span>
-                </div>
-                <Typography.Title level={3} style={{ fontFamily: 'var(--font-display)', marginBottom: 8, fontSize: 20 }}>
-                  {course.name}
-                </Typography.Title>
-                <div style={{ display: 'flex', gap: 18, marginBottom: 12, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                    <NodeIndexOutlined style={{ marginRight: 4 }} />
-                    {course.nodeCount ?? 0} 知识点
-                  </span>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                    <TeamOutlined style={{ marginRight: 4 }} />
-                    {course.studentCount ?? 0} 名学生
-                  </span>
-                </div>
-                {/* 教师：显示邀请码 */}
-                {isTeacher && course.inviteCode && (
-                  <div style={{
-                    fontSize: 12, color: 'var(--text-muted)', marginBottom: 14,
-                    background: 'var(--bg-muted)', padding: '4px 10px', borderRadius: 4,
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                  }}>
-                    邀请码：<span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--accent)', letterSpacing: 2 }}>{course.inviteCode}</span>
-                    <CopyOutlined style={{ cursor: 'pointer', fontSize: 11 }}
-                      onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(course.inviteCode!); message.success('已复制'); }} />
+                <div className="course-card__body">
+                  <div className="course-card__head">
+                    <div className="course-card__icon">
+                      <BookOutlined />
+                    </div>
+                    <span className="course-card__semester">{course.semester}</span>
                   </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  {isTeacher && (
-                    <Button type="link" size="small" style={{ color: 'var(--text-secondary)', fontSize: 12, padding: 0 }}
-                      onClick={(e) => { e.stopPropagation(); handleViewMembers(course); }}>
-                      <TeamOutlined style={{ marginRight: 2 }} />成员 ({course.studentCount ?? 0})
+
+                  <Typography.Title level={3} className="course-card__title">
+                    {course.name}
+                  </Typography.Title>
+
+                  {course.description ? (
+                    <p className="course-card__desc">{course.description}</p>
+                  ) : null}
+
+                  <div className="course-card__stats">
+                    <span className="course-card__stat">
+                      <NodeIndexOutlined />
+                      {course.nodeCount ?? 0} 知识点
+                    </span>
+                    <span className="course-card__stat">
+                      <TeamOutlined />
+                      {course.studentCount ?? 0} 名学生
+                    </span>
+                  </div>
+
+                  {isTeacher && course.inviteCode && (
+                    <div className="course-card__invite">
+                      邀请码
+                      <span className="course-card__invite-code">{course.inviteCode}</span>
+                      <CopyOutlined
+                        className="course-card__copy"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(course.inviteCode!);
+                          message.success('已复制');
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="course-card__footer">
+                  {isTeacher ? (
+                    <Button
+                      type="link"
+                      size="small"
+                      className="course-card__members"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/courses/${course.id}/members`);
+                      }}
+                    >
+                      <TeamOutlined style={{ marginRight: 2 }} />
+                      成员 ({course.studentCount ?? 0})
                     </Button>
+                  ) : (
+                    <span />
                   )}
                   <div style={{ flex: 1, textAlign: 'right' }}>
-                    <Button type="text" size="small" style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                    <Button type="text" size="small" className="course-card__enter">
                       进入课程 <RightOutlined style={{ fontSize: 10, marginLeft: 2 }} />
                     </Button>
                   </div>
@@ -203,7 +227,7 @@ export default function CourseListPage() {
         confirmLoading={creating}
         okText="创建"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={createForm} layout="vertical" style={{ paddingTop: 8 }} autoComplete="off">
           <Form.Item

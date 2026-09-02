@@ -1,6 +1,6 @@
 import { useState, useEffect, useReducer } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Button, Radio, Progress, Spin, message, Empty, Modal } from 'antd';
+import { App, Typography, Button, Radio, Progress, Spin, Empty, Modal } from 'antd';
 import { ArrowLeftOutlined, CheckCircleOutlined, TrophyOutlined, RiseOutlined } from '@ant-design/icons';
 import type { Quiz, SubmitResult } from '../../api/types';
 import { fetchQuiz, submitQuiz } from '../../api/quiz';
@@ -43,6 +43,7 @@ function reducer(state: QuizState, action: Action): QuizState {
 export default function QuizPage() {
   const { courseId, quizId } = useParams<{ courseId: string; quizId: string }>();
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
