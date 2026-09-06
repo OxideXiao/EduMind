@@ -12,6 +12,12 @@ public interface CourseMemberMapper {
             "VALUES (#{courseId}, #{userId}, #{memberRole}, NOW(), 'active')")
     int insert(CourseMember member);
 
+    @Insert("INSERT INTO course_members (course_id, user_id, member_role, joined_at, status) " +
+            "VALUES (#{courseId}, #{userId}, #{memberRole}, NOW(), 'active') " +
+            "ON CONFLICT (course_id, user_id) " +
+            "DO UPDATE SET status = 'active', member_role = EXCLUDED.member_role, joined_at = NOW()")
+    int upsert(CourseMember member);
+
     @Select("SELECT cm.*, u.real_name AS user_name FROM course_members cm " +
             "JOIN users u ON cm.user_id = u.id " +
             "WHERE cm.course_id = #{courseId} AND cm.member_role = 'student' AND cm.status = 'active' " +

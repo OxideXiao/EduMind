@@ -1,12 +1,15 @@
 package com.example.smartteachingplatform.agent.service.impl;
 
 import com.example.smartteachingplatform.agent.dto.*;
+import com.example.smartteachingplatform.agent.entity.TeachingSuggestion;
+import com.example.smartteachingplatform.agent.mapper.TeachingSuggestionMapper;
 import com.example.smartteachingplatform.agent.service.AgentService;
 import com.example.smartteachingplatform.analytics.dto.DashboardResponse;
 import com.example.smartteachingplatform.analytics.mapper.AnalyticsMapper;
 import com.example.smartteachingplatform.analytics.service.AnalyticsService;
 import com.example.smartteachingplatform.auth.entity.User;
 import com.example.smartteachingplatform.auth.mapper.UserMapper;
+import com.example.smartteachingplatform.common.exception.BusinessException;
 import com.example.smartteachingplatform.course.entity.Course;
 import com.example.smartteachingplatform.course.mapper.CourseMapper;
 import com.example.smartteachingplatform.memory.service.MemoryService;
@@ -20,9 +23,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,6 +44,8 @@ public class AgentServiceImpl implements AgentService {
     private final CourseMapper courseMapper;
     private final AnalyticsService analyticsService;
     private final AnalyticsMapper analyticsMapper;
+    private final TeachingSuggestionMapper teachingSuggestionMapper;
+    private final ObjectMapper objectMapper;
 
     private static final Duration AGENT_TIMEOUT = Duration.ofSeconds(30);
 
@@ -116,7 +126,11 @@ public class AgentServiceImpl implements AgentService {
 
     @Override
     public TeachingSuggestionResponse getTeachingSuggestion(Long courseId,
-                                                             List<Long> weakNodeIds) {
+                                                             List<Long> weakNodeIds,
+                                                             Long teacherId)
+    {
+        assertCourseTeacher(courseId, teacherId);
+
         Course course = courseMapper.findById(courseId);
         String courseName = course != null ? course.getCourseName() : "";
 
@@ -139,12 +153,17 @@ public class AgentServiceImpl implements AgentService {
                     .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP).doubleValue());
         }
 
-        // 薄弱知识点：优先用前端传的，否则从 dashboard 取
+        // 薄弱知识点：优先用前端传的 nodeId，否则从 dashboard 取
         List<String> weakPoints;
+        List<Long> resolvedWeakNodeIds;
         if (weakNodeIds != null && !weakNodeIds.isEmpty()) {
-            // 前端传了 nodeId，需要转换为 nodeName（简化：直接用 id 的字符串）
             weakPoints = weakNodeIds.stream().map(String::valueOf).collect(Collectors.toList());
+            resolvedWeakNodeIds = weakNodeIds;
         } else {
+            resolvedWeakNodeIds = dashboard.getWeakKnowledgePoints().stream()
+                    .map(DashboardResponse.WeakNode::getNodeId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             weakPoints = dashboard.getWeakKnowledgePoints().stream()
                     .map(DashboardResponse.WeakNode::getName)
                     .collect(Collectors.toList());
@@ -153,7 +172,7 @@ public class AgentServiceImpl implements AgentService {
         int riskCount = dashboard.getRiskStudentCount();
 
         Map<String, Object> requestBody = Map.of(
-                "teacher_id", 0,
+                "teacher_id", teacherId,
                 "course_id", courseId,
                 "course_name", courseName,
                 "class_avg_mastery", classAvgMastery,
@@ -185,7 +204,24 @@ public class AgentServiceImpl implements AgentService {
             throw new RuntimeException("教学建议生成失败: " + err);
         }
 
-        return buildSuggestionResponse(agentResp.getData());
+        TeachingSuggestionResponse resp = buildSuggestionResponse(agentResp.getData());
+
+        TeachingSuggestion entity = new TeachingSuggestion();
+        entity.setCourseId(courseId);
+        entity.setTeacherId(teacherId);
+        entity.setProblem(resp.getProblem());
+        try {
+            entity.setSuggestions(objectMapper.writeValueAsString(resp.getSuggestions()));
+            entity.setWeakNodeIds(objectMapper.writeValueAsString(resolvedWeakNodeIds));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("教学建议序列化失败", e);
+        }
+        entity.setPriority(resp.getPriority());
+        teachingSuggestionMapper.insert(entity);
+
+        resp.setId(entity.getId());
+        resp.setWeakNodeIds(resolvedWeakNodeIds);
+        return resp;
     }
 
     @SuppressWarnings("unchecked")
@@ -203,6 +239,80 @@ public class AgentServiceImpl implements AgentService {
         resp.setPriority((String) data.getOrDefault("priority", "NORMAL"));
         resp.setGeneratedAt(LocalDateTime.now());
         return resp;
+    }
+
+    // ────────────── 教学建议查询 ──────────────
+
+    @Override
+    public TeachingSuggestionResponse getLatestSuggestion(Long courseId, Long teacherId) {
+        assertCourseTeacher(courseId, teacherId);
+        TeachingSuggestion latest = teachingSuggestionMapper.findLatestByCourseId(courseId);
+        if (latest == null) {
+            throw new BusinessException(404, "暂无教学建议");
+        }
+        return toResponse(latest);
+    }
+
+    @Override
+    public Map<String, Object> listSuggestions(Long courseId, Long teacherId, int page, int pageSize) {
+        assertCourseTeacher(courseId, teacherId);
+        int offset = (page - 1) * pageSize;
+        List<TeachingSuggestion> rows = teachingSuggestionMapper.findPage(courseId, offset, pageSize);
+        long total = teachingSuggestionMapper.countByCourseId(courseId);
+
+        List<TeachingSuggestionResponse> items = rows.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("items", items);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("pageSize", pageSize);
+        return result;
+    }
+
+    private void assertCourseTeacher(Long courseId, Long teacherId) {
+        Long ownerId = courseMapper.findTeacherIdByCourseId(courseId);
+        if (ownerId == null) {
+            throw new BusinessException(404, "课程不存在");
+        }
+        if (!ownerId.equals(teacherId)) {
+            throw new BusinessException(403, "仅本课程教师可操作");
+        }
+    }
+
+    private TeachingSuggestionResponse toResponse(TeachingSuggestion e) {
+        TeachingSuggestionResponse resp = new TeachingSuggestionResponse();
+        resp.setId(e.getId());
+        resp.setProblem(e.getProblem());
+        resp.setSuggestions(parseStringList(e.getSuggestions()));
+        resp.setWeakNodeIds(parseLongList(e.getWeakNodeIds()));
+        resp.setPriority(e.getPriority());
+        resp.setGeneratedAt(e.getCreatedAt());
+        return resp;
+    }
+
+    private List<String> parseStringList(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (JsonProcessingException e) {
+            return List.of();
+        }
+    }
+
+    private List<Long> parseLongList(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<Long>>() {});
+        } catch (JsonProcessingException e) {
+            return List.of();
+        }
     }
 
     // ────────────── 触发提醒 ──────────────

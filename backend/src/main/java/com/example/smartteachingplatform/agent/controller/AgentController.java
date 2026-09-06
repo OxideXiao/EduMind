@@ -2,6 +2,7 @@ package com.example.smartteachingplatform.agent.controller;
 
 import com.example.smartteachingplatform.agent.dto.*;
 import com.example.smartteachingplatform.agent.service.AgentService;
+import com.example.smartteachingplatform.common.exception.BusinessException;
 import com.example.smartteachingplatform.common.response.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -39,11 +41,29 @@ public class AgentController {
             @RequestBody(required = false) TeachingSuggestionBody body) {
         try {
             List<Long> weakNodeIds = body != null ? body.getWeakNodeIds() : List.of();
-            return Result.success(agentService.getTeachingSuggestion(courseId, weakNodeIds));
+            Long teacherId = getCurrentUserId();
+            return Result.success(agentService.getTeachingSuggestion(courseId, weakNodeIds, teacherId));
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("教学建议生成失败: courseId={}, {}", courseId, e.getMessage());
             return Result.error("建议生成失败，请稍后重试");
         }
+    }
+
+    @GetMapping("/api/courses/{courseId}/teaching-suggestions/latest")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result<TeachingSuggestionResponse> latestTeachingSuggestion(@PathVariable Long courseId) {
+        return Result.success(agentService.getLatestSuggestion(courseId, getCurrentUserId()));
+    }
+
+    @GetMapping("/api/courses/{courseId}/teaching-suggestions")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result<Map<String, Object>> listTeachingSuggestions(
+            @PathVariable Long courseId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return Result.success(agentService.listSuggestions(courseId, getCurrentUserId(), page, pageSize));
     }
 
     @PostMapping("/api/courses/{courseId}/agent/trigger-reminder")

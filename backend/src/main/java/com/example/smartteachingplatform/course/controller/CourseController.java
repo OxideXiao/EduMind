@@ -34,12 +34,11 @@ public class CourseController {
         return Result.success(courseService.listMyCourses(SecurityUtils.getUserId()));
     }
 
-    @PostMapping("/{courseId}/join")
+    @PostMapping("/join")
     @PreAuthorize("hasRole('STUDENT')")
-    public Result<Map<String, Object>> join(@PathVariable Long courseId,
-                       @RequestBody Map<String, String> body) {
+    public Result<Map<String, Object>> join(@RequestBody Map<String, String> body) {
         return Result.success(courseService.joinByInviteCode(
-                SecurityUtils.getUserId(), courseId, body.get("inviteCode")));
+                SecurityUtils.getUserId(), body.get("inviteCode")));
     }
 
     @GetMapping("/{courseId}/members")
