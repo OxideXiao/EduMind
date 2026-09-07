@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Typography, Button, Checkbox, Spin, message } from 'antd';
+import { App, Typography, Button, Checkbox, Spin } from 'antd';
 import { ThunderboltOutlined } from '@ant-design/icons';
 import type { LearningPlan } from '../../api/types';
 import { fetchLatestPlan, generateLearningPlan } from '../../api/agent';
 
 export default function LearningPlanPage() {
   const { courseId } = useParams<{ courseId: string }>();
+  const { message } = App.useApp();
   const [plan, setPlan] = useState<LearningPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);

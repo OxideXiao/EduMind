@@ -24,6 +24,14 @@ const TeachingAdvicePage = lazy(
 const NotificationListPage = lazy(
   () => import("../pages/notification/NotificationListPage"),
 );
+const MembersPage = lazy(() => import("../pages/members/MembersPage"));
+const ResourcesPage = lazy(() => import("../pages/resources/ResourcesPage"));
+const QuestionBankPage = lazy(
+  () => import("../pages/question-bank/QuestionBankPage"),
+);
+const AssignmentsPage = lazy(
+  () => import("../pages/assignments/AssignmentsPage"),
+);
 
 /** 加载中占位 */
 function PageLoader() {
@@ -148,6 +156,38 @@ export default function AppRoutes() {
               element={
                 <Lazy>
                   <StudentDetailPage />
+                </Lazy>
+              }
+            />
+            <Route
+              path="/courses/:courseId/members"
+              element={
+                <Lazy>
+                  <MembersPage />
+                </Lazy>
+              }
+            />
+            <Route
+              path="/courses/:courseId/resources"
+              element={
+                <Lazy>
+                  <ResourcesPage />
+                </Lazy>
+              }
+            />
+            <Route
+              path="/courses/:courseId/question-bank"
+              element={
+                <Lazy>
+                  <QuestionBankPage />
+                </Lazy>
+              }
+            />
+            <Route
+              path="/courses/:courseId/assignments"
+              element={
+                <Lazy>
+                  <AssignmentsPage />
                 </Lazy>
               }
             />
