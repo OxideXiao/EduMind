@@ -44,10 +44,19 @@ export async function fetchQuiz(quizId: number): Promise<Quiz> {
 /** POST /api/quizzes/{quizId}/submit */
 export async function submitQuiz(quizId: number, answers: Record<number, string>): Promise<SubmitResult> {
   await delay(600);
-  const quiz = MOCK_QUIZZES[quizId];
-  if (!quiz) throw new Error('测验不存在');
+  let quiz = MOCK_QUIZZES[quizId];
+  if (!quiz) {
+    // 教师从题库发布的测验：按答题覆盖率给示意分
+    const answered = Object.keys(answers).length;
+    const score = answered === 0 ? 0 : Math.min(100, 60 + answered * 8);
+    return {
+      score,
+      totalScore: 100,
+      masteryUpdates: [{ nodeId: 0, label: '综合掌握度', change: Math.round((score - 50) / 10) }],
+    };
+  }
 
-  const correctMap: Record<number, string> = {
+  const correctMap: Record<string, string> = {
     // 测验1 答案
     '1-1': '连续存储', '1-2': '插入删除快', '1-3': '错误', '1-4': '树', '1-5': '正确',
     // 测验2 答案

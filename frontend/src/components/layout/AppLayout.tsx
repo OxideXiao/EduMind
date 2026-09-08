@@ -72,7 +72,7 @@ function buildBreadcrumbs(pathname: string): { title: string; path: string }[] {
   }
 
   if (rest === 'assignments') {
-    items.push({ title: '作业管理', path: `/courses/${courseId}/assignments` });
+    items.push({ title: '作业', path: `/courses/${courseId}/assignments` });
     return items;
   }
 
@@ -138,6 +138,7 @@ export default function AppLayout() {
           ]
         : [
             { key: '/graph', icon: <NodeIndexOutlined />, label: '知识图谱' },
+            { key: '/assignments', icon: <FormOutlined />, label: '我的作业' },
             { key: '/plan', icon: <CalendarOutlined />, label: '学习计划' },
           ])
     : [
