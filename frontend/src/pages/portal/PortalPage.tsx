@@ -1,17 +1,13 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   App,
   Form,
-  Input,
-  Button,
   Typography,
   Row,
   Col,
 } from 'antd';
 import {
-  MailOutlined,
-  LockOutlined,
   NodeIndexOutlined,
   BulbOutlined,
   DashboardOutlined,
@@ -19,100 +15,70 @@ import {
   BookOutlined,
   BarChartOutlined,
   RocketOutlined,
-  StarFilled,
-  SafetyOutlined,
-  TeamOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { login } from '../../api/auth';
 import LiquidEther from '../../components/LiquidEther';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
-/* ═══════════════════════════════════════════════════════════
-   功能卡片数据
-   ═══════════════════════════════════════════════════════════ */
 const FEATURES = [
   {
-    icon: <NodeIndexOutlined style={{ fontSize: 28 }} />,
+    icon: <NodeIndexOutlined />,
     title: '知识图谱可视化',
     desc: '交互式课程知识图谱，直观展示知识点间的依赖与关联，掌握度用颜色一目了然。',
-    color: '#4f6d8c',
   },
   {
-    icon: <BulbOutlined style={{ fontSize: 28 }} />,
+    icon: <BulbOutlined />,
     title: 'AI 智能推荐',
     desc: '基于掌握度分析，自动生成个性化学习路径与练习题推荐，因材施教。',
-    color: '#7c3aed',
   },
   {
-    icon: <DashboardOutlined style={{ fontSize: 28 }} />,
+    icon: <DashboardOutlined />,
     title: '学情数据分析',
     desc: '多维度学情看板，全班掌握度热力图、个体轨迹曲线，数据驱动教学决策。',
-    color: '#0891b2',
   },
   {
-    icon: <CalendarOutlined style={{ fontSize: 28 }} />,
+    icon: <CalendarOutlined />,
     title: '智能计划与提醒',
     desc: 'AI 自动规划学习周计划，智能推送复习提醒，科学安排备考节奏。',
-    color: '#d97706',
   },
 ];
 
-/* ═══════════════════════════════════════════════════════════
-   亮点数据
-   ═══════════════════════════════════════════════════════════ */
-const HIGHLIGHTS = [
-  { icon: <StarFilled />, value: 'G6 图谱引擎', label: '高性能渲染' },
-  { icon: <SafetyOutlined />, value: 'JWT 认证', label: '安全可靠' },
-  { icon: <TeamOutlined />, value: '师生双角色', label: '全场景覆盖' },
-];
-
-/* ═══════════════════════════════════════════════════════════
-   门户主页
-   ═══════════════════════════════════════════════════════════ */
 export default function PortalPage() {
   const [loading, setLoading] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
+  const [portalRole, setPortalRole] = useState<'teacher' | 'student'>('teacher');
+  const ctaRef = useRef<HTMLElement>(null);
   const navigate = useNavigate();
   const { message } = App.useApp();
   const { isAuthenticated, setAuth } = useAuth();
   const [form] = Form.useForm();
 
-  /* 监听滚动：滑过 Hero 后导航栏吸附并显示白底 */
-  useEffect(() => {
-    let rafId: number;
-    const onScroll = () => {
-      rafId = requestAnimationFrame(() => {
-        if (heroRef.current) {
-          const heroBottom = heroRef.current.offsetTop + heroRef.current.offsetHeight;
-          setIsSticky(window.scrollY >= heroBottom - 80);
-        }
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(rafId);
-    };
+  const closeNav = useCallback(() => {
+    const el = document.getElementById('navi-toggle') as HTMLInputElement | null;
+    if (el) el.checked = false;
   }, []);
 
-  /** 滚动到 CTA 登录区 */
-  const scrollToCta = useCallback(() => {
-    ctaRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+  const goSection = useCallback((id: string) => {
+    closeNav();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  }, [closeNav]);
 
   const handleEnter = useCallback(() => {
+    closeNav();
     if (isAuthenticated) {
       navigate('/courses');
     } else {
-      scrollToCta();
+      ctaRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isAuthenticated, navigate, scrollToCta]);
+  }, [isAuthenticated, navigate, closeNav]);
 
-  /** 登录提交 */
+  const selectRoleAndGoLogin = useCallback((role: 'teacher' | 'student') => {
+    setPortalRole(role);
+    closeNav();
+    document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' });
+  }, [closeNav]);
+
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
     try {
@@ -129,272 +95,82 @@ export default function PortalPage() {
 
   return (
     <div
+      className="portal-page"
       style={{
         minHeight: '100vh',
-        background: 'var(--bg-root)',
+        background: 'var(--color-white)',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* ═══ 固定导航栏 — 滑过 Hero 后才显示 ═══ */}
-      <header
-        className={isSticky ? 'sticky-header' : ''}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          height: 80,
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 48px',
-          backgroundColor: 'rgba(255,255,255,0.97)',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
-          transform: isSticky ? 'translateY(0)' : 'translateY(-100%)',
-          transition: 'transform 0.3s ease',
-        }}
-      >
-        <nav
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            width: '100%',
-          }}
-        >
-          {/* Logo */}
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              cursor: 'pointer',
-              background: 'none',
-              border: 'none',
-            }}
-          >
-            <img
-              src="/logo.png"
-              alt="Logo"
-              style={{ width: 38, height: 38, objectFit: 'cover', borderRadius: '50%' }}
-            />
-            <span
-              style={{
-                fontSize: 19,
-                fontWeight: 600,
-                fontFamily: 'var(--font-display)',
-                color: '#1a1a2e',
-              }}
-            >
-              智慧教学平台
-            </span>
-          </button>
-
-          {/* 右侧按钮组 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 32, marginLeft: 'auto' }}>
-            <button
-              onClick={() =>
-                document
-                  .getElementById('how-it-works')
-                  ?.scrollIntoView({ behavior: 'smooth' })
-              }
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: 16,
-                fontWeight: 500,
-                color: '#333',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              使用流程
-            </button>
-            <button
-              onClick={() =>
-                document
-                  .getElementById('features')
-                  ?.scrollIntoView({ behavior: 'smooth' })
-              }
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: 16,
-                fontWeight: 500,
-                color: '#333',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              核心功能
-            </button>
-
-            <Button
-              onClick={handleEnter}
-              style={{
-                height: 46,
-                padding: '0 28px',
-                fontSize: 17,
-                fontWeight: 600,
-                borderRadius: 9,
-                backgroundColor: '#e67e22',
-                borderColor: '#e67e22',
-                color: '#fff',
-                transition: 'background-color 0.3s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#cf711f';
-                e.currentTarget.style.borderColor = '#cf711f';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#e67e22';
-                e.currentTarget.style.borderColor = '#e67e22';
-              }}
-            >
-              立即开始
-            </Button>
-          </div>
+      {/* ═══ Natours 圆形展开导航 ═══ */}
+      <div className="navigation">
+        <input type="checkbox" className="navigation__checkbox" id="navi-toggle" />
+        <label htmlFor="navi-toggle" className="navigation__button" aria-label="打开菜单">
+          <span className="navigation__icon">&nbsp;</span>
+        </label>
+        <div className="navigation__background">&nbsp;</div>
+        <nav className="navigation__nav" aria-label="门户导航">
+          <ul className="navigation__list">
+            <li className="navigation__item">
+              <a
+                href="#how-it-works"
+                className="navigation__link"
+                onClick={(e) => { e.preventDefault(); goSection('how-it-works'); }}
+              >
+                <span>01</span>使用流程
+              </a>
+            </li>
+            <li className="navigation__item">
+              <a
+                href="#features"
+                className="navigation__link"
+                onClick={(e) => { e.preventDefault(); goSection('features'); }}
+              >
+                <span>02</span>核心功能
+              </a>
+            </li>
+            <li className="navigation__item">
+              <a
+                href="#roles"
+                className="navigation__link"
+                onClick={(e) => { e.preventDefault(); goSection('roles'); }}
+              >
+                <span>03</span>角色选择
+              </a>
+            </li>
+            <li className="navigation__item">
+              <a
+                href="#stories"
+                className="navigation__link"
+                onClick={(e) => { e.preventDefault(); goSection('stories'); }}
+              >
+                <span>04</span>用户反馈
+              </a>
+            </li>
+            <li className="navigation__item">
+              <a
+                href="#cta"
+                className="navigation__link"
+                onClick={(e) => { e.preventDefault(); handleEnter(); }}
+              >
+                <span>05</span>{isAuthenticated ? '进入课程' : '登录开始'}
+              </a>
+            </li>
+            <li className="navigation__item">
+              <Link to="/register" className="navigation__link" onClick={closeNav}>
+                <span>06</span>注册账号
+              </Link>
+            </li>
+          </ul>
         </nav>
-      </header>
+      </div>
 
       {/* ═══ Hero ═══ */}
-      <section
-        ref={heroRef}
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          height: '75vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          textAlign: 'center',
-        }}
-      >
-        {/* 导航栏 */}
-        <header
-          style={{
-            zIndex: 100,
-            width: '100%',
-            padding: '28px 48px 0',
-          }}
-        >
-          <nav
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-            }}
-          >
-            {/* Logo */}
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                cursor: 'pointer',
-                background: 'none',
-                border: 'none',
-              }}
-            >
-              <img
-                src="/logo.png"
-                alt="Logo"
-                style={{ width: 38, height: 38, objectFit: 'cover', borderRadius: '50%' }}
-              />
-              <span
-                style={{
-                  fontSize: 19,
-                  fontWeight: 600,
-                  fontFamily: 'var(--font-display)',
-                  color: '#1a1a2e',
-                }}
-              >
-                智慧教学平台
-              </span>
-            </button>
-
-            {/* 右侧按钮组 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 32, marginLeft: 'auto' }}>
-              <button
-                onClick={() =>
-                  document
-                    .getElementById('how-it-works')
-                    ?.scrollIntoView({ behavior: 'smooth' })
-                }
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: '#1a1a2e',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
-                使用流程
-              </button>
-              <button
-                onClick={() =>
-                  document
-                    .getElementById('features')
-                    ?.scrollIntoView({ behavior: 'smooth' })
-                }
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: '#1a1a2e',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
-                核心功能
-              </button>
-
-              <Button
-                onClick={handleEnter}
-                style={{
-                  height: 46,
-                  padding: '0 28px',
-                  fontSize: 17,
-                  fontWeight: 600,
-                  borderRadius: 9,
-                  backgroundColor: '#e67e22',
-                  borderColor: '#e67e22',
-                  color: '#fff',
-                  transition: 'background-color 0.3s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#cf711f';
-                  e.currentTarget.style.borderColor = '#cf711f';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#e67e22';
-                  e.currentTarget.style.borderColor = '#e67e22';
-                }}
-              >
-                立即开始
-              </Button>
-            </div>
-          </nav>
-        </header>
-
-        {/* LiquidEther 流体背景层 */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 0,
-          }}
-        >
+      <section className="portal-header">
+        <div className="portal-header__liquid">
           <LiquidEther
-            colors={['#e8956a', '#f2bc94', '#fdf2e9']}
+            colors={['#3d5a75', '#7a9bb5', '#243848']}
             mouseForce={20}
             cursorSize={100}
             isViscous
@@ -412,167 +188,36 @@ export default function PortalPage() {
           />
         </div>
 
-        {/* 遮罩渐变 — 保证文字可读 */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 1,
-            background:
-              'linear-gradient(180deg, rgba(253,242,233,0.05) 0%, rgba(253,242,233,0.30) 50%, rgba(253,242,233,0.55) 100%)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* 内容层 */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 2,
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            maxWidth: 720,
-            padding: '40px 24px 80px',
-          }}
-        >
-
-          <Title
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 48,
-              fontWeight: 700,
-              color: '#3d2c1e',
-              lineHeight: 1.3,
-              marginBottom: 20,
-              animation: 'moveInLeft 0.9s ease-out 0.15s backwards',
-            }}
-          >
-            让知识在
-            <span style={{ color: '#e8956a' }}>星空</span>
-            中连接
-          </Title>
-
-          <Text
-            style={{
-              fontSize: 17,
-              color: 'rgba(61, 44, 30, 0.55)',
-              lineHeight: 1.8,
-              display: 'block',
-              maxWidth: 540,
-              margin: '0 auto 40px',
-              animation: 'moveInRight 0.9s ease-out 0.4s backwards',
-            }}
-          >
-            基于知识图谱与 AI 的智慧教学辅助平台，为教师提供学情洞察，
-            为学生规划个性化学习路径，让教与学更科学高效。
-          </Text>
-
-          <div
-            style={{
-              display: 'flex',
-              gap: 10,
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              animation: 'moveInBottom 0.9s ease-out 0.65s backwards',
-            }}
-          >
-            <Button
-              className="hero-btn hero-btn-animated"
-              onClick={handleEnter}
-            >
-              开始你的知识连接
-            </Button>
+        <div className="portal-header__logo-box">
+          <div className="portal-header__logo-btn">
+            <img src="/logo.png" alt="Logo" className="portal-header__logo" />
+            <span className="portal-header__brand">智慧教学平台</span>
           </div>
         </div>
-      </section>
 
-      {/* ═══ 亮点条 ═══ */}
-      <section
-        style={{
-          height: '25vh',
-          background: 'var(--bg-elevated)',
-          borderBottom: '1px solid var(--border-default)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 800,
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 64,
-            flexWrap: 'wrap',
-          }}
-        >
-          {HIGHLIGHTS.map((h, i) => (
-            <div
-              key={i}
-              style={{ textAlign: 'center', color: 'var(--text-secondary)' }}
-            >
-              <span style={{ color: 'var(--accent)', marginRight: 4 }}>
-                {h.icon}
-              </span>
-              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                {h.value}
-              </span>
-              <Text
-                style={{
-                  display: 'block',
-                  fontSize: 12,
-                  color: 'var(--text-muted)',
-                  marginTop: 2,
-                }}
-              >
-                {h.label}
-              </Text>
-            </div>
-          ))}
+        <div className="portal-header__text-box">
+          <h1 className="heading-primary">
+            <span className="heading-primary--main">智慧教学</span>
+            <span className="heading-primary--sub">让知识在星空中连接</span>
+          </h1>
+          <div className="portal-header__actions">
+            <button type="button" className="btn btn--white btn--animated" onClick={handleEnter}>
+              开始你的知识连接
+            </button>
+          </div>
         </div>
       </section>
 
       {/* ═══ 使用流程 ═══ */}
       <section
         id="how-it-works"
-        style={{
-          padding: '9.6rem 0',
-          background: 'var(--bg-root)',
-        }}
+        className="section section-how"
+        style={{ background: 'var(--color-white)' }}
       >
-        {/* 标题区 */}
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 3.2rem' }}>
-          <span
-            style={{
-              display: 'block',
-              fontSize: 16,
-              fontWeight: 500,
-              color: '#e67e22',
-              textTransform: 'uppercase',
-              letterSpacing: '0.75px',
-              marginBottom: 16,
-            }}
-          >
-            使用流程
-          </span>
-          <Title
-            level={2}
-            style={{
-              fontFamily: 'var(--font-display)',
-              color: 'var(--text-primary)',
-              marginBottom: 0,
-              fontSize: 36,
-            }}
-          >
-            三步开启智慧教学
-          </Title>
+        <div className="u-center-text" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 3.2rem' }}>
+          <h2 className="heading-secondary">三步开启智慧教学</h2>
         </div>
 
-        {/* 步骤内容 — 2 列 Grid Z 字形 */}
         <div
           style={{
             maxWidth: 1200,
@@ -585,24 +230,12 @@ export default function PortalPage() {
             alignItems: 'center',
           }}
         >
-          {/* ── Step 01：文字左 · 图片右 ── */}
           <div>
             <p className="step-number">01</p>
-            <Title
-              level={3}
-              style={{ marginBottom: 16, fontWeight: 600, color: 'var(--text-primary)' }}
-            >
-              创建课程
-            </Title>
-            <Text
-              style={{
-                fontSize: 16,
-                lineHeight: 1.8,
-                color: 'var(--text-secondary)',
-              }}
-            >
+            <h3 className="heading-tertiary">创建课程</h3>
+            <p className="paragraph">
               教师创建课程并导入知识点，系统自动构建知识图谱，直观展示知识点间的依赖与关联关系。
-            </Text>
+            </p>
           </div>
           <div className="step-img-box">
             <div className="step-icon">
@@ -610,7 +243,6 @@ export default function PortalPage() {
             </div>
           </div>
 
-          {/* ── Step 02：图片左 · 文字右 ── */}
           <div className="step-img-box">
             <div className="step-icon">
               <BarChartOutlined />
@@ -618,41 +250,18 @@ export default function PortalPage() {
           </div>
           <div>
             <p className="step-number">02</p>
-            <Title
-              level={3}
-              style={{ marginBottom: 16, fontWeight: 600, color: 'var(--text-primary)' }}
-            >
-              智能分析
-            </Title>
-            <Text
-              style={{
-                fontSize: 16,
-                lineHeight: 1.8,
-                color: 'var(--text-secondary)',
-              }}
-            >
+            <h3 className="heading-tertiary">智能分析</h3>
+            <p className="paragraph">
               学生完成测验后，AI 实时分析知识点掌握度，生成多维度学情报告与掌握度热力图。
-            </Text>
+            </p>
           </div>
 
-          {/* ── Step 03：文字左 · 图片右 ── */}
           <div>
             <p className="step-number">03</p>
-            <Title
-              level={3}
-              style={{ marginBottom: 16, fontWeight: 600, color: 'var(--text-primary)' }}
-            >
-              因材施教
-            </Title>
-            <Text
-              style={{
-                fontSize: 16,
-                lineHeight: 1.8,
-                color: 'var(--text-secondary)',
-              }}
-            >
+            <h3 className="heading-tertiary">因材施教</h3>
+            <p className="paragraph">
               根据学情分析结果，自动推荐个性化学习路径与练习题目，科学规划备考节奏。
-            </Text>
+            </p>
           </div>
           <div className="step-img-box">
             <div className="step-icon">
@@ -663,97 +272,19 @@ export default function PortalPage() {
       </section>
 
       {/* ═══ 功能介绍 ═══ */}
-      <section
-        id="features"
-        style={{
-          padding: '88px 24px',
-          background: 'var(--bg-root)',
-        }}
-      >
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          {/* 标题 */}
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <Title
-              level={2}
-              style={{
-                fontFamily: 'var(--font-display)',
-                color: 'var(--text-primary)',
-                marginBottom: 12,
-              }}
-            >
-              核心功能
-            </Title>
-            <Text
-              style={{
-                fontSize: 15,
-                color: 'var(--text-secondary)',
-                maxWidth: 480,
-                display: 'block',
-                margin: '0 auto',
-              }}
-            >
-              四大核心模块，覆盖教学全场景，用技术赋能每一堂课
-            </Text>
-          </div>
-
-          {/* 卡片 */}
-          <Row gutter={[24, 24]}>
+      <section id="features" className="section section-features">
+        <div className="section-features__inner" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 2.4rem' }}>
+          <Row gutter={[48, 48]}>
             {FEATURES.map((f, i) => (
               <Col xs={24} sm={12} lg={6} key={i}>
-                <div
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: '32px 24px',
-                    border: '1px solid var(--border-default)',
-                    height: '100%',
-                    transition:
-                      'transform var(--duration-normal) var(--ease-out-expo), box-shadow var(--duration-normal) var(--ease-out-expo)',
-                    cursor: 'default',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-elevated)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 'var(--radius-md)',
-                      background: `${f.color}14`,
-                      color: f.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 20,
-                    }}
-                  >
+                <div className="feature-box">
+                  <span className="feature-box__icon" aria-hidden>
                     {f.icon}
-                  </div>
-                  <Title
-                    level={5}
-                    style={{
-                      color: 'var(--text-primary)',
-                      marginBottom: 10,
-                      fontWeight: 600,
-                    }}
-                  >
+                  </span>
+                  <h3 className="heading-tertiary" style={{ textTransform: 'none', letterSpacing: 0 }}>
                     {f.title}
-                  </Title>
-                  <Text
-                    style={{
-                      color: 'var(--text-secondary)',
-                      fontSize: 13,
-                      lineHeight: 1.8,
-                    }}
-                  >
-                    {f.desc}
-                  </Text>
+                  </h3>
+                  <p className="paragraph">{f.desc}</p>
                 </div>
               </Col>
             ))}
@@ -761,184 +292,275 @@ export default function PortalPage() {
         </div>
       </section>
 
-      {/* ═══ CTA / 登录 ═══ */}
-      <section
-        ref={ctaRef}
-        style={{
-          padding: '5.6rem 3.2rem 8rem',
-          background: 'var(--bg-root)',
-        }}
-      >
-        <div
-          className="cta-grid"
-          style={{
-            maxWidth: 1100,
-            margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr',
-            borderRadius: 11,
-            overflow: 'hidden',
-            boxShadow: '0 2.4rem 4.8rem rgba(0,0,0,0.15)',
-          }}
-        >
-          {/* 左侧：登录表单 */}
-          <div
-            style={{
-              padding: '40px 64px 48px 64px',
-              color: '#45260a',
-            }}
-            className="cta-left"
-          >
-            <Title
-              level={2}
-              style={{
-                fontFamily: 'var(--font-display)',
-                color: '#45260a',
-                marginBottom: 12,
-                fontSize: 36,
-                fontWeight: 700,
-              }}
-            >
-              准备好开始了吗？
-            </Title>
-            <Text
-              style={{
-                color: '#45260a',
-                fontSize: 18,
-                lineHeight: 1.8,
-                display: 'block',
-                marginBottom: 36,
-              }}
-            >
-              免费使用，无需安装，即刻体验 AI 驱动的智慧教学
-            </Text>
+      {/* ═══ 角色双卡 ═══ */}
+      <section id="roles" className="section section-roles">
+        <div className="u-center-text u-margin-bottom-big">
+          <h2 className="heading-secondary">选择你的角色</h2>
+        </div>
 
-            <Form
-              form={form}
-              layout="vertical"
-              size="large"
-              onFinish={onFinish}
-              autoComplete="off"
-            >
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  columnGap: 32,
-                  rowGap: 20,
-                }}
-              >
-                {/* 邮箱地址 */}
-                <Form.Item
-                  name="email"
-                  rules={[
-                    { required: true, message: '请输入邮箱' },
-                    { type: 'email', message: '邮箱格式不正确' },
-                  ]}
-                  style={{ marginBottom: 0 }}
-                >
-                  <div>
-                    <label className="cta-label">邮箱地址</label>
-                    <Input
-                      prefix={<MailOutlined />}
-                      placeholder="zhangsan@example.com"
-                      className="cta-input"
-                    />
-                  </div>
-                </Form.Item>
-
-                {/* 密码 */}
-                <Form.Item
-                  name="password"
-                  rules={[{ required: true, message: '请输入密码' }]}
-                  style={{ marginBottom: 0 }}
-                >
-                  <div>
-                    <label className="cta-label">密码</label>
-                    <Input.Password
-                      prefix={<LockOutlined />}
-                      placeholder="请输入密码"
-                      className="cta-input"
-                    />
-                  </div>
-                </Form.Item>
-
-                {/* 登录按钮 */}
-                <div>
-                  <label className="cta-label">&nbsp;</label>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    block
-                    loading={loading}
-                    className="cta-btn"
-                    style={{
-                      height: 48,
-                      fontSize: 20,
-                      fontWeight: 600,
-                      borderRadius: 9,
-                      background: '#45260a',
-                      borderColor: '#45260a',
-                      color: '#fdf2e9',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#fff';
-                      e.currentTarget.style.color = '#555';
-                      e.currentTarget.style.borderColor = '#fff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#45260a';
-                      e.currentTarget.style.color = '#fdf2e9';
-                      e.currentTarget.style.borderColor = '#45260a';
-                    }}
-                  >
-                    登 录
-                  </Button>
-                </div>
-
-                {/* 占位 */}
-                <div />
+        <div className="roles-row">
+          <div className="role-card">
+            <div className="role-card__side role-card__side--front">
+              <div className="role-card__picture role-card__picture--teacher" />
+              <h4 className="role-card__heading">
+                <span className="role-card__heading-span role-card__heading-span--teacher">
+                  教师端
+                </span>
+              </h4>
+              <div className="role-card__details">
+                <ul>
+                  <li>构建课程知识图谱</li>
+                  <li>发布作业与测验</li>
+                  <li>掌握度热力分析</li>
+                  <li>AI 教学建议</li>
+                  <li>班级学情总览</li>
+                </ul>
               </div>
-            </Form>
-
-            {/* 底部注册提示 */}
-            <div style={{ textAlign: 'center', marginTop: 16 }}>
-              <span style={{ color: '#45260a', fontSize: 14 }}>
-                还没有账号？
-              </span>
-              <Link
-                to="/register"
-                style={{
-                  color: '#45260a',
-                  fontWeight: 600,
-                  fontSize: 14,
-                  textDecoration: 'underline',
-                  marginLeft: 4,
-                }}
-              >
-                去注册
-              </Link>
+            </div>
+            <div className="role-card__side role-card__side--back role-card__side--back-teacher">
+              <div className="role-card__cta">
+                <div className="role-card__price-box">
+                  <p className="role-card__price-only">适用角色</p>
+                  <p className="role-card__price-value">教师</p>
+                </div>
+                <a
+                  href="#cta"
+                  className="btn btn--white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    selectRoleAndGoLogin('teacher');
+                  }}
+                >
+                  开始体验
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* 右侧：装饰区 */}
-          <div
-            className="cta-right"
-            style={{
-              backgroundImage:
-                'linear-gradient(to right bottom, rgba(235,152,78,0.35), rgba(230,126,34,0.35)), url("https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+          <div className="role-card">
+            <div className="role-card__side role-card__side--front">
+              <div className="role-card__picture role-card__picture--student" />
+              <h4 className="role-card__heading">
+                <span className="role-card__heading-span role-card__heading-span--student">
+                  学生端
+                </span>
+              </h4>
+              <div className="role-card__details">
+                <ul>
+                  <li>可视化学习路径</li>
+                  <li>节点练习与作业</li>
+                  <li>AI 智能推荐</li>
+                  <li>薄弱点精准补强</li>
+                  <li>个人掌握度追踪</li>
+                </ul>
+              </div>
+            </div>
+            <div className="role-card__side role-card__side--back role-card__side--back-student">
+              <div className="role-card__cta">
+                <div className="role-card__price-box">
+                  <p className="role-card__price-only">适用角色</p>
+                  <p className="role-card__price-value">学生</p>
+                </div>
+                <a
+                  href="#cta"
+                  className="btn btn--white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    selectRoleAndGoLogin('student');
+                  }}
+                >
+                  开始体验
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Stories ═══ */}
+      <section id="stories" className="section section-stories">
+        <div className="bg-video">
+          <video
+            className="bg-video__content"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+          >
+            <source src="/video.mp4" type="video/mp4" />
+          </video>
+        </div>
+
+        <div className="u-center-text u-margin-bottom-big">
+          <h2 className="heading-secondary">师生真实反馈</h2>
+        </div>
+
+        <div className="stories-row">
+          <div className="story">
+            <figure className="story__shape">
+              <img
+                src="/profile-1.jpg"
+                alt="教师用户"
+                className="story__img"
+              />
+              <figcaption className="story__caption">特种兵</figcaption>
+            </figure>
+            <div className="story__text">
+              <h3 className="heading-tertiary u-margin-bottom-small">
+                备课从「猜学情」变成「看数据」
+              </h3>
+              <p>
+                以前只能凭经验判断班级薄弱点。用上 EduMind 的掌握度热力图和知识图谱后，
+                我能一眼看到哪些节点卡住了全班，再针对性布置练习。课堂反馈快了很多。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="stories-row">
+          <div className="story">
+            <figure className="story__shape">
+              <img
+                src="/profile-2.jpg"
+                alt="学生用户"
+                className="story__img"
+              />
+              <figcaption className="story__caption">工天剑</figcaption>
+            </figure>
+            <div className="story__text">
+              <h3 className="heading-tertiary u-margin-bottom-small">
+                终于知道该先补哪一块
+              </h3>
+              <p>
+                图谱把知识点依赖关系画清楚了，AI 推荐也不会乱推题。跟着路径练了两周，
+                以前一碰就慌的章节现在也能稳住节奏，复习不再漫无目的。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="u-center-text u-margin-top-huge">
+          <a
+            href="#cta"
+            className="btn-text"
+            onClick={(e) => {
+              e.preventDefault();
+              goSection('cta');
             }}
-          />
+          >
+            开始体验 &rarr;
+          </a>
+        </div>
+      </section>
+
+      {/* ═══ CTA / 登录（Natours book）═══ */}
+      <section
+        id="cta"
+        ref={ctaRef}
+        className="section section-book"
+      >
+        <div className="book-row">
+          <div className="book">
+            <div className="book__form">
+              <h2 className="heading-secondary u-margin-bottom-small" style={{ textTransform: 'none', letterSpacing: 0 }}>
+                准备好开始了吗？
+              </h2>
+
+              <Form form={form} className="form" onFinish={onFinish} autoComplete="off">
+                <div className="form__group">
+                  <Form.Item
+                    name="email"
+                    rules={[
+                      { required: true, message: '请输入邮箱' },
+                      { type: 'email', message: '邮箱格式不正确' },
+                    ]}
+                    noStyle
+                  >
+                    <input
+                      type="email"
+                      className="form__input"
+                      placeholder="邮箱地址"
+                      id="login-email"
+                      required
+                    />
+                  </Form.Item>
+                  <label htmlFor="login-email" className="form__label">
+                    邮箱地址
+                  </label>
+                </div>
+
+                <div className="form__group">
+                  <Form.Item
+                    name="password"
+                    rules={[{ required: true, message: '请输入密码' }]}
+                    noStyle
+                  >
+                    <input
+                      type="password"
+                      className="form__input"
+                      placeholder="密码"
+                      id="login-password"
+                      required
+                    />
+                  </Form.Item>
+                  <label htmlFor="login-password" className="form__label">
+                    密码
+                  </label>
+                </div>
+
+                <div className="form__group u-margin-bottom-medium">
+                  <div className="form__radio-group">
+                    <input
+                      type="radio"
+                      className="form__radio-input"
+                      id="role-teacher"
+                      name="portal-role"
+                      checked={portalRole === 'teacher'}
+                      onChange={() => setPortalRole('teacher')}
+                    />
+                    <label htmlFor="role-teacher" className="form__radio-label">
+                      <span className="form__radio-button" />
+                      教师端
+                    </label>
+                  </div>
+                  <div className="form__radio-group">
+                    <input
+                      type="radio"
+                      className="form__radio-input"
+                      id="role-student"
+                      name="portal-role"
+                      checked={portalRole === 'student'}
+                      onChange={() => setPortalRole('student')}
+                    />
+                    <label htmlFor="role-student" className="form__radio-label">
+                      <span className="form__radio-button" />
+                      学生端
+                    </label>
+                  </div>
+                </div>
+
+                <div className="form__group">
+                  <button type="submit" className="btn btn--green" disabled={loading}>
+                    {loading ? '登录中…' : '登录 →'}
+                  </button>
+                </div>
+              </Form>
+
+              <div className="book__register">
+                <span>还没有账号？</span>
+                <Link to="/register">去注册</Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ═══ Footer ═══ */}
       <footer
         style={{
-          background: 'var(--bg-elevated)',
-          borderTop: '1px solid var(--border-default)',
+          background: 'var(--color-grey-light-1)',
+          borderTop: '1px solid var(--color-grey-light-2)',
           padding: '40px 24px',
         }}
       >
@@ -959,7 +581,7 @@ export default function PortalPage() {
               alt="Logo"
               style={{ width: 28, height: 28, borderRadius: '50%' }}
             />
-            <Text style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+            <Text style={{ color: 'var(--color-grey-dark)', fontSize: 13 }}>
               智慧教学平台 © 2026 CCF 服务计算创新大赛
             </Text>
           </div>
@@ -967,11 +589,7 @@ export default function PortalPage() {
             {['关于我们', '使用条款', '联系方式'].map((t) => (
               <Text
                 key={t}
-                style={{
-                  color: 'var(--text-muted)',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
+                style={{ color: 'var(--color-grey-dark-2)', fontSize: 13, cursor: 'pointer' }}
               >
                 {t}
               </Text>
@@ -979,7 +597,6 @@ export default function PortalPage() {
           </div>
         </div>
       </footer>
-
     </div>
   );
 }
