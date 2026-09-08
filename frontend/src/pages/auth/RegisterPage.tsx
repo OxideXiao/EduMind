@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Form, Input, Button, Segmented, Typography, message } from 'antd';
+import { App, Form, Input, Button, Segmented, Typography } from 'antd';
 import { HomeOutlined, UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { register } from '../../api/auth';
@@ -8,6 +8,7 @@ import { register } from '../../api/auth';
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'TEACHER' | 'STUDENT'>('STUDENT');
+  const { message } = App.useApp();
   const { setAuth } = useAuth();
   const navigate = useNavigate();
 

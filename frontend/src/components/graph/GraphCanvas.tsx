@@ -10,17 +10,22 @@ import {
 import ReactECharts from 'echarts-for-react';
 import type { EChartsOption, EChartsType } from 'echarts';
 import type { GraphData, GraphNode } from '../../api/graph';
+import type { GraphLegendFilter } from './GraphLegend';
+import { nodeMatchesLegendFilter } from './GraphLegend';
 import { MASTERY_COLOR, MASTERY_LABEL, RECOMMENDED_BORDER } from '../../utils/colorMap';
 
 interface GraphCanvasProps {
   data: GraphData;
   viewRole: 'student' | 'teacher';
   mini?: boolean;
+  legendFilter?: GraphLegendFilter | null;
   onNodeClick?: (node: GraphNode) => void;
 }
 
 export interface GraphCanvasHandle {
   resetLayout: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
 }
 
 /** 节点 tooltip 数据载体 */
@@ -39,16 +44,33 @@ interface EChartsNodeData {
   _isWeakTop: boolean;
 }
 
+const ZOOM_STEP = 1.15;
+
 /**
  * 知识图谱画布 — 基于 ECharts graph 力导向图
  * 后端提供预设坐标，ECharts force 布局微调
  */
 const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function GraphCanvas(
-  { data, viewRole, mini = false, onNodeClick },
+  { data, viewRole, mini = false, legendFilter = null, onNodeClick },
   ref,
 ) {
   const chartRef = useRef<ReactECharts>(null);
   const [resetKey, setResetKey] = useState(0);
+  const legendFilterRef = useRef(legendFilter);
+  legendFilterRef.current = legendFilter;
+
+  const dispatchZoom = useCallback((ratio: number, originX?: number, originY?: number) => {
+    const chart = chartRef.current?.getEchartsInstance();
+    if (!chart) return;
+    const dom = chart.getDom();
+    chart.dispatchAction({
+      type: 'graphRoam',
+      seriesIndex: 0,
+      zoom: ratio,
+      originX: originX ?? dom.clientWidth / 2,
+      originY: originY ?? dom.clientHeight / 2,
+    });
+  }, []);
 
   // 对外开放 resetLayout：强制重新挂载以还原力导向初始布局
   useImperativeHandle(
@@ -57,8 +79,10 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
       resetLayout: () => {
         setResetKey((k) => k + 1);
       },
+      zoomIn: () => dispatchZoom(ZOOM_STEP),
+      zoomOut: () => dispatchZoom(1 / ZOOM_STEP),
     }),
-    [],
+    [dispatchZoom],
   );
 
   /** 判断鼠标是否在节点圆形区域内（不在标签上） */
@@ -102,6 +126,9 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
   );
 
   const option: EChartsOption = useMemo(() => {
+    const filtering = Boolean(legendFilter);
+    const nodeMap = new Map(data.nodes.map((n) => [n.id, n]));
+
     return {
       tooltip: {
         trigger: 'item',
@@ -121,24 +148,28 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
         extraCssText:
           'border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.08);padding:14px 18px;',
       },
-      animation: true,
-      animationDuration: 600,
+      animation: !legendFilter,
+      animationDuration: legendFilter ? 0 : 600,
       animationEasing: 'cubicOut',
       series: [
         {
           type: 'graph',
           layout: 'force',
-          roam: 'scale', // 仅保留 ECharts 原生缩放，平移由外层容器统一接管避免双倍速度
+          roam: false,
           draggable: !mini,
           data: data.nodes.map(
-            (n): EChartsNodeData => ({
+            (n): EChartsNodeData => {
+              const matched = !legendFilter || nodeMatchesLegendFilter(n, legendFilter, viewRole);
+              const baseSize = n.isRecommended ? 56 : 48;
+              return {
               id: String(n.id),
               name: n.name,
               x: n.x,
               y: n.y,
-              symbolSize: n.isRecommended ? 56 : 48,
+              symbolSize: filtering && matched ? baseSize * 1.12 : baseSize,
               itemStyle: {
                 color: MASTERY_COLOR[n.masteryLevel] || '#c5bfb6',
+                opacity: matched ? 1 : 0.12,
                 borderColor: n.isRecommended
                   ? RECOMMENDED_BORDER
                   : viewRole === 'teacher' && n.isWeakTop
@@ -148,14 +179,15 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
                   n.isRecommended || (viewRole === 'teacher' && n.isWeakTop) ? 3 : 0,
                 borderType:
                   viewRole === 'teacher' && n.isWeakTop ? 'dashed' : 'solid',
-                shadowBlur: n.isRecommended ? 14 : 0,
+                shadowBlur: n.isRecommended && matched ? 14 : 0,
                 shadowColor: 'rgba(79,109,140,0.35)',
               },
               label: {
                 show: !mini,
                 fontSize: 13,
-                fontWeight: 500,
-                color: '#1a1a2e',
+                fontWeight: matched && filtering ? 600 : 500,
+                color: matched ? '#1a1a2e' : '#a39e96',
+                opacity: matched ? 1 : 0.12,
                 position: 'bottom',
                 distance: 4,
               },
@@ -164,15 +196,24 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
               _description: n.description || '',
               _isRecommended: n.isRecommended,
               _isWeakTop: n.isWeakTop,
-            }),
+            };
+            },
           ),
-          edges: data.edges.map((e) => ({
+          edges: data.edges.map((e) => {
+            const from = nodeMap.get(e.from);
+            const to = nodeMap.get(e.to);
+            const edgeVisible = !filtering || !from || !to || (
+              nodeMatchesLegendFilter(from, legendFilter!, viewRole)
+              && nodeMatchesLegendFilter(to, legendFilter!, viewRole)
+            );
+            return {
             source: String(e.from),
             target: String(e.to),
             lineStyle: {
               color: '#d5d5d5',
               curveness: 0.2,
-              width: 1.5,
+              width: edgeVisible && filtering ? 2 : 1.5,
+              opacity: edgeVisible ? (filtering ? 0.85 : 1) : 0.08,
             },
             emphasis: {
               focus: 'none',
@@ -180,8 +221,12 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
                 width: 3,
               },
             },
-          })),
-          emphasis: {
+          };
+          }),
+          emphasis: legendFilter ? {
+            focus: 'none',
+            scale: false,
+          } : {
             focus: 'adjacency',
             blurScope: 'coordinateSystem',
             itemStyle: {
@@ -202,7 +247,7 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
         } as EChartsOption['series'],
       ],
     } as EChartsOption;
-  }, [data, viewRole, mini]);
+  }, [data, viewRole, mini, legendFilter]);
 
   // 手动管理高亮：只在鼠标落在节点圆形上时才高亮关联节点
   const onEvents = useMemo(() => {
@@ -239,7 +284,9 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
       // 鼠标不在圆形上 → 取消高亮，也不标记为"在节点上"（避免影响画布拖拽）
       if (!isOnCircle(chart, p.dataIndex, mouseEvent, p.data)) {
         isOverNode.current = false;
-        chart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+        if (!legendFilterRef.current) {
+          chart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+        }
         return;
       }
       // 鼠标在圆形上 → 标记，让 ECharts 内置 focus:'adjacency' 生效
@@ -251,7 +298,9 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
       const chart = chartRef.current?.getEchartsInstance();
       if (!chart) return;
       isOverNode.current = false;
-      chart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+      if (!legendFilterRef.current) {
+        chart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+      }
     };
 
     // 鼠标移出图表区域
@@ -259,7 +308,9 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
       const chart = chartRef.current?.getEchartsInstance();
       if (!chart) return;
       isOverNode.current = false;
-      chart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+      if (!legendFilterRef.current) {
+        chart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+      }
     };
 
     return events;
@@ -306,21 +357,40 @@ const GraphCanvas = forwardRef<GraphCanvasHandle, GraphCanvasProps>(function Gra
       });
     };
 
+    const onWheel = (e: WheelEvent) => {
+      if (mini) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const chart = chartRef.current?.getEchartsInstance();
+      if (!chart) return;
+      const rect = chart.getDom().getBoundingClientRect();
+
+      // 触控板（像素模式）连续缩放；鼠标滚轮固定步进
+      const ratio = e.deltaMode === WheelEvent.DOM_DELTA_PIXEL
+        ? Math.pow(1.002, -e.deltaY)
+        : (e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP);
+
+      dispatchZoom(ratio, e.clientX - rect.left, e.clientY - rect.top);
+    };
+
     const onMouseUp = () => {
       panRef.current.active = false;
       if (!mini) container.style.cursor = 'grab';
     };
 
     container.addEventListener('mousedown', onMouseDown);
+    container.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
 
     return () => {
       container.removeEventListener('mousedown', onMouseDown);
+      container.removeEventListener('wheel', onWheel);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
-  }, [mini, resetKey]);
+  }, [mini, resetKey, dispatchZoom]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>

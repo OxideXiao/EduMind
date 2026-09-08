@@ -39,6 +39,14 @@ client.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+    // Blob 错误体尝试解析 message
+    const body = error.response?.data;
+    if (body instanceof Blob) {
+      return Promise.reject(error);
+    }
+    if (body && typeof body === 'object' && typeof body.message === 'string' && body.message.trim()) {
+      return Promise.reject(new Error(body.message));
+    }
     return Promise.reject(error);
   },
 );

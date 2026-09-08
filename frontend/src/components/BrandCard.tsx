@@ -1,6 +1,6 @@
-import type { ReactNode, CSSProperties } from 'react';
+import type { ReactNode, CSSProperties, HTMLAttributes } from 'react';
 
-interface BrandCardProps {
+interface BrandCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'style' | 'onClick'> {
   children: ReactNode;
   className?: string;
   style?: CSSProperties;
@@ -10,29 +10,33 @@ interface BrandCardProps {
 
 /**
  * 统一品牌卡片
- * - 暗底 + 金色顶线
- * - hover 上浮效果（hover=true 时启用）
+ * - hover 上浮交给 CSS transition，避免 JS 改 transform 导致生硬
  */
-export default function BrandCard({ children, className = '', style, onClick, hover = true }: BrandCardProps) {
+export default function BrandCard({
+  children,
+  className = '',
+  style,
+  onClick,
+  hover = true,
+  onAnimationEnd,
+  ...rest
+}: BrandCardProps) {
   return (
     <div
-      className={`card-branded ${className}`}
+      className={`card-branded ${hover ? 'card-branded--hover' : ''} ${className}`}
       style={{
         cursor: onClick ? 'pointer' : 'default',
-        ...(hover ? {} : { transform: 'none', boxShadow: 'var(--shadow-card)' }),
         ...style,
       }}
       onClick={onClick}
-      onMouseEnter={(e) => {
-        if (!hover || !onClick) return;
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-elevated)';
+      onAnimationEnd={(e) => {
+        // 入场动画结束后清掉 animation，释放 transform 给 hover 上浮
+        if (e.target === e.currentTarget) {
+          e.currentTarget.style.animation = 'none';
+        }
+        onAnimationEnd?.(e);
       }}
-      onMouseLeave={(e) => {
-        if (!hover || !onClick) return;
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-card)';
-      }}
+      {...rest}
     >
       {children}
     </div>

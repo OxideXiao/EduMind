@@ -24,6 +24,14 @@ const TeachingAdvicePage = lazy(
 const NotificationListPage = lazy(
   () => import("../pages/notification/NotificationListPage"),
 );
+const MembersPage = lazy(() => import("../pages/members/MembersPage"));
+const ResourcesPage = lazy(() => import("../pages/resources/ResourcesPage"));
+const QuestionBankPage = lazy(
+  () => import("../pages/question-bank/QuestionBankPage"),
+);
+const AssignmentsEntry = lazy(
+  () => import("../pages/assignments/AssignmentsEntry"),
+);
 
 /** 加载中占位 */
 function PageLoader() {
@@ -151,7 +159,41 @@ export default function AppRoutes() {
                 </Lazy>
               }
             />
+            <Route
+              path="/courses/:courseId/members"
+              element={
+                <Lazy>
+                  <MembersPage />
+                </Lazy>
+              }
+            />
+            <Route
+              path="/courses/:courseId/resources"
+              element={
+                <Lazy>
+                  <ResourcesPage />
+                </Lazy>
+              }
+            />
+            <Route
+              path="/courses/:courseId/question-bank"
+              element={
+                <Lazy>
+                  <QuestionBankPage />
+                </Lazy>
+              }
+            />
           </Route>
+
+          {/* 作业：教师管理 / 学生提交（同路径按角色分发） */}
+          <Route
+            path="/courses/:courseId/assignments"
+            element={
+              <Lazy>
+                <AssignmentsEntry />
+              </Lazy>
+            }
+          />
 
           {/* 学生专属 */}
           <Route element={<RequireRole role={Role.STUDENT} />}>
