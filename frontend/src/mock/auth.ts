@@ -16,12 +16,20 @@ function delay(ms?: number) {
 export async function login(params: LoginParams): Promise<AuthResponse> {
   await delay();
   const account = DEMO_ACCOUNTS.find(
-    (a) => a.email === params.email && a.password === params.password,
+    (a) =>
+      (a.email === params.account || a.username === params.account)
+      && a.password === params.password,
   );
-  if (!account) throw new Error('邮箱或密码错误');
+  if (!account) throw new Error('账号或密码错误');
   return {
     token: mockToken(account.userId),
-    user: { id: account.userId, name: account.name, email: account.email, role: account.role },
+    user: {
+      id: account.userId,
+      name: account.name,
+      username: account.username,
+      email: account.email,
+      role: account.role,
+    },
   };
 }
 

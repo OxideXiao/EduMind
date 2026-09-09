@@ -3,10 +3,10 @@
  */
 
 export const DEMO_ACCOUNTS = [
-  { userId: 2,   name: '陈老师', email: 'teacher2@demo.com', password: 'demo123456', role: 'TEACHER'  as const },
-  { userId: 101, name: '张三',   email: 'student1@demo.com', password: 'demo123456', role: 'STUDENT'  as const },
-  { userId: 102, name: '李四',   email: 'student2@demo.com', password: 'demo123456', role: 'STUDENT'  as const },
-  { userId: 103, name: '王五',   email: 'student3@demo.com', password: 'demo123456', role: 'STUDENT'  as const },
+  { userId: 2,   username: 'teacher1', name: '陈老师', email: 'teacher2@demo.com', password: 'demo123456', role: 'TEACHER' as const },
+  { userId: 101, username: 'zhangsan', name: '张三',   email: 'student1@demo.com', password: 'demo123456', role: 'STUDENT' as const },
+  { userId: 102, username: 'lisi',     name: '李四',   email: 'student2@demo.com', password: 'demo123456', role: 'STUDENT' as const },
+  { userId: 103, username: 'wangwu',   name: '王五',   email: 'student3@demo.com', password: 'demo123456', role: 'STUDENT' as const },
 ];
 
 export type DemoAccount = (typeof DEMO_ACCOUNTS)[number];
