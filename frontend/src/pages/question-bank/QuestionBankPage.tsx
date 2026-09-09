@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  App, Table, Button, Modal, Form, Input, InputNumber, Select, Space, Tag, Spin, Empty,
+  App, Table, Button, Modal, Form, Input, InputNumber, Select, Space, Tag, Spin, Empty, Typography,
 } from 'antd';
 import {
-  PlusOutlined, UploadOutlined, ReloadOutlined, DatabaseOutlined, SearchOutlined,
+  PlusOutlined, UploadOutlined, ReloadOutlined, DatabaseOutlined, SearchOutlined, LinkOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { BankQuestion, QuestionType } from '../../api/types';
 import {
-  createBankQuestion, fetchBankQuestions, importBankQuestions,
+  bindQuestionToNode,
+  commitQuestionImport,
+  createBankQuestion,
+  fetchBankQuestions,
+  getQuestionImportTemplateUrl,
+  previewQuestionImport,
+  unbindQuestionFromNode,
 } from '../../api/teacher';
 import { fetchGraph } from '../../api/graph';
 import ImportUploadPanel from '../../components/ImportUploadPanel';
@@ -40,7 +46,12 @@ export default function QuestionBankPage() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [bindOpen, setBindOpen] = useState(false);
+  const [bindTarget, setBindTarget] = useState<BankQuestion | null>(null);
+  const [bindNodeId, setBindNodeId] = useState<number | undefined>();
+  const [importNodeId, setImportNodeId] = useState<number | undefined>();
   const [saving, setSaving] = useState(false);
+  const [binding, setBinding] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [nodeOptions, setNodeOptions] = useState<{ label: string; value: number }[]>([]);
   const [form] = Form.useForm();
@@ -109,6 +120,40 @@ export default function QuestionBankPage() {
     }
   };
 
+  const openBind = (row: BankQuestion) => {
+    setBindTarget(row);
+    setBindNodeId(undefined);
+    setBindOpen(true);
+  };
+
+  const handleBind = async () => {
+    if (!bindTarget || bindNodeId == null) {
+      message.warning('请选择要绑定的知识点');
+      return;
+    }
+    setBinding(true);
+    try {
+      await bindQuestionToNode(numCourseId, bindTarget.id, bindNodeId);
+      message.success('已绑定知识点');
+      setBindOpen(false);
+      load();
+    } catch (err: unknown) {
+      message.error(err instanceof Error ? err.message : '绑定失败');
+    } finally {
+      setBinding(false);
+    }
+  };
+
+  const handleUnbind = async (row: BankQuestion, nodeId: number) => {
+    try {
+      await unbindQuestionFromNode(numCourseId, row.id, nodeId);
+      message.success('已解绑');
+      load();
+    } catch (err: unknown) {
+      message.error(err instanceof Error ? err.message : '解绑失败');
+    }
+  };
+
   const columns: ColumnsType<BankQuestion> = [
     {
       title: '题干',
@@ -132,9 +177,38 @@ export default function QuestionBankPage() {
       title: '关联知识点',
       dataIndex: 'nodeNames',
       render: (names: string[] | undefined, row) => {
-        const text = (names?.length ? names : row.nodeIds.map((id) => `#${id}`)).join('、') || '—';
-        return <span className="course-page-cell-muted">{text}</span>;
+        if (row.nodeIds.length === 0) {
+          return <span className="course-page-cell-muted">—</span>;
+        }
+        return (
+          <Space size={[4, 4]} wrap>
+            {row.nodeIds.map((id, i) => {
+              const label = names?.[i] ?? `#${id}`;
+              return (
+                <Tag
+                  key={id}
+                  closable
+                  onClose={(e) => {
+                    e.preventDefault();
+                    handleUnbind(row, id);
+                  }}
+                >
+                  {label}
+                </Tag>
+              );
+            })}
+          </Space>
+        );
       },
+    },
+    {
+      title: '操作',
+      width: 100,
+      render: (_, row) => (
+        <Button type="link" size="small" icon={<LinkOutlined />} onClick={() => openBind(row)}>
+          绑定
+        </Button>
+      ),
     },
   ];
 
@@ -150,7 +224,9 @@ export default function QuestionBankPage() {
         )}
         actions={(
           <Space wrap>
-            <Button icon={<UploadOutlined />} onClick={() => setImportOpen(true)}>批量导入</Button>
+            <Button icon={<UploadOutlined />} onClick={() => { setImportNodeId(undefined); setImportOpen(true); }}>
+              批量导入
+            </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>新增题目</Button>
           </Space>
         )}
@@ -189,7 +265,9 @@ export default function QuestionBankPage() {
             {list.length === 0 ? (
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无题目" className="dashboard-empty">
                 <Space>
-                  <Button icon={<UploadOutlined />} onClick={() => setImportOpen(true)}>批量导入</Button>
+                  <Button icon={<UploadOutlined />} onClick={() => { setImportNodeId(undefined); setImportOpen(true); }}>
+                    批量导入
+                  </Button>
                   <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>新增题目</Button>
                 </Space>
               </Empty>
@@ -247,13 +325,57 @@ export default function QuestionBankPage() {
         onCancel={() => setImportOpen(false)}
         footer={null}
         destroyOnHidden
-        width={640}
+        width={720}
       >
+        <Typography.Paragraph type="secondary" style={{ marginBottom: 8 }}>
+          模板为 7 列（无知识点列）。可在下方选择节点，导入后自动绑定；也可导入后再手动绑定。
+        </Typography.Paragraph>
+        <Select
+          allowClear
+          showSearch
+          optionFilterProp="label"
+          placeholder="可选：导入后自动绑定到该知识点"
+          options={nodeOptions}
+          value={importNodeId}
+          onChange={(v) => setImportNodeId(v)}
+          style={{ width: '100%', marginBottom: 16 }}
+        />
         <ImportUploadPanel
           title="上传题库文件"
-          hint="支持 CSV / Excel。题型字段建议：SINGLE / JUDGE / SHORT / FILE"
-          onImport={(file) => importBankQuestions(numCourseId, file)}
-          onSuccess={() => load()}
+          hint="题型：SINGLE_CHOICE / MULTIPLE_CHOICE / TRUE_FALSE / FILL_BLANK / SHORT_ANSWER；选项用 | 分隔"
+          accept=".xlsx,.xls"
+          templateUrl={getQuestionImportTemplateUrl(numCourseId)}
+          onPreview={(file) => previewQuestionImport(numCourseId, file, { targetNodeId: importNodeId })}
+          onCommit={(token) => commitQuestionImport(numCourseId, token)}
+          onSuccess={() => {
+            load();
+            setImportOpen(false);
+          }}
+        />
+      </Modal>
+
+      <Modal
+        title="绑定知识点"
+        open={bindOpen}
+        onCancel={() => setBindOpen(false)}
+        onOk={handleBind}
+        confirmLoading={binding}
+        destroyOnHidden
+        okText="绑定"
+      >
+        {bindTarget && (
+          <Typography.Paragraph type="secondary" ellipsis>
+            题目：{bindTarget.content}
+          </Typography.Paragraph>
+        )}
+        <Select
+          showSearch
+          optionFilterProp="label"
+          placeholder="选择知识点节点"
+          options={nodeOptions}
+          value={bindNodeId}
+          onChange={setBindNodeId}
+          style={{ width: '100%' }}
         />
       </Modal>
     </div>

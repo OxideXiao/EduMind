@@ -126,6 +126,14 @@ export default function StudentAssignmentsPage() {
       ),
     },
     {
+      title: '提交时间',
+      dataIndex: 'submittedAt',
+      width: 160,
+      render: (v?: string) => (
+        <span className="dashboard-date">{v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '—'}</span>
+      ),
+    },
+    {
       title: '操作',
       width: 110,
       render: (_, row) => (

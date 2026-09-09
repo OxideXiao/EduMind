@@ -1,13 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  App, Typography, Table, Button, Modal, Form, Input, InputNumber, Select, DatePicker, Spin, Empty,
+  App, Typography, Table, Button, Modal, Form, Input, InputNumber, Select, DatePicker, Spin, Empty, Tag,
 } from 'antd';
-import { PlusOutlined, ReloadOutlined, FormOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, ReloadOutlined, FormOutlined, SearchOutlined, TeamOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import type { Assignment, AssignmentStatus, AssignmentSubmitType } from '../../api/types';
-import { createAssignment, fetchAssignments, publishAssignment } from '../../api/teacher';
+import type {
+  Assignment,
+  AssignmentStatus,
+  AssignmentSubmitType,
+  TeacherSubmissionItem,
+} from '../../api/types';
+import {
+  createAssignment,
+  fetchAssignments,
+  fetchAssignmentSubmissions,
+  publishAssignment,
+} from '../../api/teacher';
 import CoursePageHeader from '../../components/layout/CoursePageHeader';
 
 const STATUS_MAP: Record<AssignmentStatus, { className: string; label: string }> = {
@@ -22,6 +32,12 @@ const SUBMIT_LABEL: Record<AssignmentSubmitType, string> = {
   MIXED: '在线 + 文件',
 };
 
+const SUBMISSION_STATUS_LABEL: Record<string, { color: string; label: string }> = {
+  submitted: { color: 'blue', label: '已提交' },
+  graded: { color: 'green', label: '已批改' },
+  not_submitted: { color: 'default', label: '未提交' },
+};
+
 /** FE-05 作业发布 */
 export default function AssignmentsPage() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -33,6 +49,10 @@ export default function AssignmentsPage() {
   const [saving, setSaving] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [form] = Form.useForm();
+  const [subsOpen, setSubsOpen] = useState(false);
+  const [subsLoading, setSubsLoading] = useState(false);
+  const [subsTitle, setSubsTitle] = useState('');
+  const [submissions, setSubmissions] = useState<TeacherSubmissionItem[]>([]);
 
   const load = () => {
     if (!numCourseId) return;
@@ -104,6 +124,26 @@ export default function AssignmentsPage() {
     }
   };
 
+  const openSubmissions = async (row: Assignment) => {
+    setSubsTitle(row.title);
+    setSubsOpen(true);
+    setSubsLoading(true);
+    setSubmissions([]);
+    try {
+      const items = await fetchAssignmentSubmissions(numCourseId, row.id);
+      setSubmissions(items);
+    } catch (err: unknown) {
+      message.error(err instanceof Error ? err.message : '加载提交列表失败');
+    } finally {
+      setSubsLoading(false);
+    }
+  };
+
+  const submissionCounts = useMemo(() => {
+    const done = submissions.filter((s) => s.status !== 'not_submitted').length;
+    return { total: submissions.length, done, todo: submissions.length - done };
+  }, [submissions]);
+
   const columns: ColumnsType<Assignment> = [
     {
       title: '标题',
@@ -153,15 +193,61 @@ export default function AssignmentsPage() {
     },
     {
       title: '操作',
-      width: 100,
-      render: (_, row) =>
-        row.status === 'DRAFT' ? (
-          <Button type="link" size="small" className="dashboard-link-btn" onClick={() => handlePublish(row)}>
-            发布
-          </Button>
-        ) : (
-          <Typography.Text type="secondary">—</Typography.Text>
-        ),
+      width: 160,
+      render: (_, row) => (
+        <>
+          {row.status === 'DRAFT' ? (
+            <Button type="link" size="small" className="dashboard-link-btn" onClick={() => handlePublish(row)}>
+              发布
+            </Button>
+          ) : (
+            <Button type="link" size="small" icon={<TeamOutlined />} onClick={() => openSubmissions(row)}>
+              提交情况
+            </Button>
+          )}
+        </>
+      ),
+    },
+  ];
+
+  const submissionColumns: ColumnsType<TeacherSubmissionItem> = [
+    {
+      title: '学生',
+      dataIndex: 'studentName',
+      render: (v: string) => <span className="course-page-cell-name">{v}</span>,
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      width: 110,
+      render: (s: string) => {
+        const meta = SUBMISSION_STATUS_LABEL[s] ?? { color: 'default', label: s };
+        return <Tag color={meta.color}>{meta.label}</Tag>;
+      },
+    },
+    {
+      title: '提交时间',
+      dataIndex: 'submittedAt',
+      width: 170,
+      render: (v?: string | null) => (
+        <span className="dashboard-date">
+          {v ? dayjs(v).format('YYYY-MM-DD HH:mm') : '—'}
+        </span>
+      ),
+    },
+    {
+      title: '分数',
+      dataIndex: 'score',
+      width: 80,
+      render: (v?: number | null) => (v == null ? '—' : v),
+    },
+    {
+      title: '附件',
+      dataIndex: 'files',
+      width: 120,
+      ellipsis: true,
+      render: (files?: TeacherSubmissionItem['files']) =>
+        files?.length ? files.map((f) => f.fileName).join('、') : '—',
     },
   ];
 
@@ -286,6 +372,36 @@ export default function AssignmentsPage() {
             <DatePicker showTime style={{ width: '100%' }} />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={`提交情况 — ${subsTitle}`}
+        open={subsOpen}
+        onCancel={() => setSubsOpen(false)}
+        footer={null}
+        width={860}
+        destroyOnHidden
+      >
+        {subsLoading ? (
+          <div className="course-page-loading">
+            <Spin />
+            <span>加载全班提交…</span>
+          </div>
+        ) : (
+          <>
+            <Typography.Paragraph type="secondary">
+              全班 {submissionCounts.total} 人：已交 {submissionCounts.done}，未交 {submissionCounts.todo}
+            </Typography.Paragraph>
+            <Table
+              size="small"
+              rowKey={(r) => `${r.studentId}-${r.submissionId ?? 'x'}`}
+              columns={submissionColumns}
+              dataSource={submissions}
+              pagination={{ pageSize: 10, hideOnSinglePage: true }}
+              locale={{ emptyText: '暂无学生' }}
+            />
+          </>
+        )}
       </Modal>
     </div>
   );

@@ -1,31 +1,58 @@
 import client from './client';
+import { TOKEN_KEY } from '../utils/constants';
 import type { LoginParams, RegisterParams, AuthResponse, AuthUser } from './types';
 
 export type { AuthUser, AuthResponse } from './types';
 
-/**
- * 后端返回平铺格式 → 转换为前端期望的嵌套格式
- * 后端: { userId, name?, role, token } 或 { userId, name, email, role }
- * 前端: AuthResponse = { token, user: { id, name, email, role } }
- */
-
-/** POST /api/auth/login */
+/** POST /api/auth/login — 账号（用户名/邮箱/学号）+ 密码 */
 export async function login(params: LoginParams): Promise<AuthResponse> {
-  const data: Record<string, unknown> = await client.post('/auth/login', params).then(r => r.data);
+  // 后端字段名仍为 email，语义是账号
+  const data: Record<string, unknown> = await client
+    .post('/auth/login', { email: params.account, password: params.password })
+    .then((r) => r.data);
+
+  const u = (data.user && typeof data.user === 'object')
+    ? (data.user as Record<string, unknown>)
+    : null;
+  const token = data.token as string;
+
+  // 先写入 token，供后续 getMe 带 Authorization
+  localStorage.setItem(TOKEN_KEY, token);
+
+  let id = Number(u?.id ?? data.userId ?? 0);
+  let name = String(u?.realName ?? u?.name ?? data.name ?? '');
+  let role = (u?.role ?? data.role) as 'TEACHER' | 'STUDENT';
+  const username = u?.username != null ? String(u.username) : undefined;
+  const mustChangePassword = Boolean(u?.mustChangePassword ?? data.mustChangePassword);
+  let email = '';
+
+  // 登录响应不含 email → 调 getMe 补全
+  try {
+    const me = await getMe();
+    email = me.email;
+    if (!name) name = me.name;
+    if (!id) id = me.id;
+    if (!role) role = me.role;
+  } catch {
+    // me 失败时仍返回登录主体信息
+  }
+
   return {
-    token: data.token as string,
+    token,
     user: {
-      id: data.userId as number,
-      name: data.name as string,
-      email: params.email,
-      role: data.role as 'TEACHER' | 'STUDENT',
+      id,
+      name,
+      username,
+      email,
+      role,
+      mustChangePassword,
     },
   };
 }
 
 /** POST /api/auth/register */
 export async function register(params: RegisterParams): Promise<AuthResponse> {
-  const data: Record<string, unknown> = await client.post('/auth/register', params).then(r => r.data);
+  const data: Record<string, unknown> = await client.post('/auth/register', params).then((r) => r.data);
   return {
     token: data.token as string,
     user: {
@@ -39,7 +66,7 @@ export async function register(params: RegisterParams): Promise<AuthResponse> {
 
 /** GET /api/auth/me — 验证 token 并获取当前用户信息 */
 export async function getMe(): Promise<AuthUser> {
-  const data: Record<string, unknown> = await client.get('/auth/me').then(r => r.data);
+  const data: Record<string, unknown> = await client.get('/auth/me').then((r) => r.data);
   return {
     id: data.userId as number,
     name: data.name as string,

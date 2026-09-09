@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { App, Form, Input, Button, Typography } from "antd";
-import { HomeOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
+import { HomeOutlined, UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useAuth } from "../../hooks/useAuth";
 import { login } from "../../api/auth";
 
@@ -11,15 +11,15 @@ export default function LoginPage() {
   const { setAuth } = useAuth();
   const navigate = useNavigate();
 
-  const onFinish = async (values: { email: string; password: string }) => {
+  const onFinish = async (values: { account: string; password: string }) => {
     setLoading(true);
     try {
       const res = await login(values);
       setAuth(res.user, res.token);
       message.success(`欢迎回来，${res.user.name}`);
       navigate("/courses");
-    } catch {
-      message.error("登录失败，请检查邮箱和密码");
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : "登录失败，请稍后重试");
     } finally {
       setLoading(false);
     }
@@ -170,13 +170,14 @@ export default function LoginPage() {
             autoComplete="off"
           >
             <Form.Item
-              name="email"
-              rules={[
-                { required: true, message: "请输入邮箱" },
-                { type: "email", message: "邮箱格式不正确" },
-              ]}
+              name="account"
+              rules={[{ required: true, message: "请输入用户名 / 邮箱 / 学号" }]}
             >
-              <Input prefix={<MailOutlined />} placeholder="邮箱地址" />
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="用户名 / 邮箱 / 学号"
+                autoComplete="username"
+              />
             </Form.Item>
             <Form.Item
               name="password"

@@ -79,15 +79,15 @@ export default function PortalPage() {
     document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' });
   }, [closeNav]);
 
-  const onFinish = async (values: { email: string; password: string }) => {
+  const onFinish = async (values: { account: string; password: string }) => {
     setLoading(true);
     try {
       const res = await login(values);
       setAuth(res.user, res.token);
       message.success(`欢迎回来，${res.user.name}`);
       navigate('/courses');
-    } catch {
-      message.error('登录失败，请检查邮箱和密码');
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : '登录失败，请稍后重试');
     } finally {
       setLoading(false);
     }
@@ -470,23 +470,21 @@ export default function PortalPage() {
               <Form form={form} className="form" onFinish={onFinish} autoComplete="off">
                 <div className="form__group">
                   <Form.Item
-                    name="email"
-                    rules={[
-                      { required: true, message: '请输入邮箱' },
-                      { type: 'email', message: '邮箱格式不正确' },
-                    ]}
+                    name="account"
+                    rules={[{ required: true, message: '请输入用户名 / 邮箱 / 学号' }]}
                     noStyle
                   >
                     <input
-                      type="email"
+                      type="text"
                       className="form__input"
-                      placeholder="邮箱地址"
-                      id="login-email"
+                      placeholder="用户名 / 邮箱 / 学号"
+                      id="login-account"
+                      autoComplete="username"
                       required
                     />
                   </Form.Item>
-                  <label htmlFor="login-email" className="form__label">
-                    邮箱地址
+                  <label htmlFor="login-account" className="form__label">
+                    用户名 / 邮箱 / 学号
                   </label>
                 </div>
 
