@@ -39,4 +39,12 @@ public class AuthController {
     public Result<Map<String, Object>> me() {
         return Result.success(authService.me(SecurityUtils.getUserId()));
     }
+
+    @PutMapping("/password")
+    @PreAuthorize("isAuthenticated()")
+    public Result<Map<String, Object>> changePassword(@RequestBody Map<String, String> body) {
+        return Result.success(authService.changePassword(SecurityUtils.getUserId(),
+                body.get("oldPassword"),
+                body.get("newPassword")));
+    }
 }
