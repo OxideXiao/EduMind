@@ -63,6 +63,10 @@ public interface KnowledgeNodeMapper {
     @Select("SELECT * FROM knowledge_nodes WHERE id = #{id}")
     KnowledgeNode findById(@Param("id") Long id);
 
+    /** 按课程 + 节点编码查单个节点 */
+    @Select("SELECT * FROM knowledge_nodes WHERE course_id = #{courseId} AND node_code = #{nodeCode}")
+    KnowledgeNode findByCode(@Param("courseId") Long courseId, @Param("nodeCode") String nodeCode);
+
     /** 插入单个知识点节点 */
     @Insert("INSERT INTO knowledge_nodes (course_id, parent_id, node_name, node_desc, " +
             "difficulty, sort_order, x_position, y_position, status, created_at, updated_at) " +
