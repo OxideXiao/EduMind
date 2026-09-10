@@ -13,6 +13,7 @@ public class Question {
     private Long id;
     private Long courseId;
     private Long knowledgeNodeId;
+    private String questionCode;
     private String questionType;
     private String stem;
     private String answer;

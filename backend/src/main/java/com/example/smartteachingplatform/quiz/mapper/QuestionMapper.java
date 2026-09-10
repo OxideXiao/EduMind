@@ -5,7 +5,8 @@ import com.example.smartteachingplatform.quiz.entity.QuestionOption;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
-
+import org.apache.ibatis.annotations.Param;
+import java.util.Map;
 @Mapper
 public interface QuestionMapper {
 
@@ -26,4 +27,21 @@ public interface QuestionMapper {
 
     @Select("SELECT * FROM question_options WHERE question_id = #{questionId} ORDER BY id")
     List<QuestionOption> findOptionsByQuestionId(Long questionId);
+
+    /** 分页查课程题目 */
+    @Select("SELECT * FROM questions WHERE course_id = #{courseId} " +
+            "ORDER BY id DESC LIMIT #{limit} OFFSET #{offset}")
+    List<Question> findPageByCourseId(@Param("courseId") Long courseId,
+                                      @Param("limit") int limit,
+                                      @Param("offset") int offset);
+
+    /** 统计课程题目总数 */
+    @Select("SELECT COUNT(*) FROM questions WHERE course_id = #{courseId}")
+    long countByCourseId(@Param("courseId") Long courseId);
+
+    /** 批量查题目选项 */
+    List<QuestionOption> findOptionsByQuestionIds(@Param("ids") List<Long> ids);
+
+    /** 批量查题目关联节点 id  */
+    List<Map<String, Object>> findNodeIdsByQuestionIds(@Param("ids") List<Long> ids);
 }
