@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS quizzes (
     end_time    timestamp,
     total_score decimal(8,2)  NOT NULL DEFAULT 0.00,
     status      varchar(30)   NOT NULL DEFAULT 'draft',
+    attempt_limit int,
     created_by  bigint        NOT NULL,
     created_at  timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  timestamp     NOT NULL DEFAULT CURRENT_TIMESTAMP,

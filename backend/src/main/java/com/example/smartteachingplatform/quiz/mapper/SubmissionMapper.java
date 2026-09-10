@@ -6,6 +6,7 @@ import com.example.smartteachingplatform.quiz.entity.QuizSubmission;
 import org.apache.ibatis.annotations.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Mapper
 public interface SubmissionMapper {
@@ -49,4 +50,10 @@ public interface SubmissionMapper {
             "VALUES (#{courseId}, #{studentId}, #{nodeId}, 'finish_quiz', #{targetId}, NOW())")
     int insertLearningLog(@Param("courseId") Long courseId, @Param("studentId") Long studentId,
                           @Param("nodeId") Long nodeId, @Param("targetId") Long targetId);
+
+    @Select("SELECT * FROM quiz_submissions WHERE id = #{submissionId}")
+    QuizSubmission findSubmissionById(Long submissionId);
+
+    @Select("SELECT * FROM quiz_answers WHERE submission_id = #{submissionId} ORDER BY id")
+    List<QuizAnswer> findAnswersBySubmissionId(Long submissionId);
 }

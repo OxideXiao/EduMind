@@ -18,6 +18,7 @@ public class Quiz {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private BigDecimal totalScore;
+    private Integer attemptLimit;
     private String status;
     private Long createdBy;
     private LocalDateTime createdAt;

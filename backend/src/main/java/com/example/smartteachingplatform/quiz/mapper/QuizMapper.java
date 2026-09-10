@@ -1,5 +1,7 @@
 package com.example.smartteachingplatform.quiz.mapper;
 
+import com.example.smartteachingplatform.quiz.dto.QuizListItemResponse;
+import com.example.smartteachingplatform.quiz.dto.QuizQuestionRow;
 import com.example.smartteachingplatform.quiz.entity.Quiz;
 import org.apache.ibatis.annotations.*;
 
@@ -31,4 +33,35 @@ public interface QuizMapper {
     /** 查测验下一道题的分数 */
     @Select("SELECT score FROM quiz_questions WHERE quiz_id = #{quizId} AND question_id = #{questionId}")
     java.math.BigDecimal findQuestionScore(@Param("quizId") Long quizId, @Param("questionId") Long questionId);
+
+    List<QuizListItemResponse> findPageByCourseId(@Param("courseId") Long courseId,
+                                                  @Param("studentOnly") boolean studentOnly,
+                                                  @Param("limit") int limit,
+                                                  @Param("offset") int offset);
+
+    long countByCourseId(@Param("courseId") Long courseId,
+                         @Param("studentOnly") boolean studentOnly);
+
+    @Select("SELECT qq.question_id, qq.score, qq.sort_order, q.question_type, q.stem " +
+            "FROM quiz_questions qq " +
+            "JOIN questions q ON qq.question_id = q.id " +
+            "WHERE qq.quiz_id = #{quizId} ORDER BY qq.sort_order")
+    List<QuizQuestionRow> findQuizQuestionRows(Long quizId);
+
+    @Update("UPDATE quizzes SET title = #{title}, description = #{description}, " +
+            "start_time = #{startTime}, end_time = #{endTime}, total_score = #{totalScore}, " +
+            "attempt_limit = #{attemptLimit}, updated_at = NOW() WHERE id = #{id}")
+    int update(Quiz quiz);
+
+    @Delete("DELETE FROM quiz_questions WHERE quiz_id = #{quizId}")
+    int deleteQuizQuestions(Long quizId);
+
+    @Delete("DELETE FROM quizzes WHERE id = #{quizId}")
+    int deleteById(Long quizId);
+
+    @Update("UPDATE quizzes SET status = #{status}, updated_at = NOW() WHERE id = #{id}")
+    int updateStatus(@Param("id") Long id, @Param("status") String status);
+
+    @Select("SELECT COUNT(*) FROM quiz_questions WHERE quiz_id = #{quizId}")
+    int countQuestionsByQuizId(Long quizId);
 }
