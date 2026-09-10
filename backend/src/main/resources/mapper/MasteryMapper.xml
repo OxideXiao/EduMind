@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.smartteachingplatform.mastery.mapper.MasteryMapper">
+
+    <select id="findHistoryPage" resultType="com.example.smartteachingplatform.mastery.dto.MasteryHistoryItemResponse">
+        SELECT mh.id AS mastery_id, mh.knowledge_node_id AS node_id,
+               mh.old_score, mh.new_score, mh.change_reason, mh.created_at
+        FROM mastery_history mh
+        WHERE mh.course_id = #{courseId} AND mh.student_id = #{studentId}
+        <if test="nodeId != null">
+            AND mh.knowledge_node_id = #{nodeId}
+        </if>
+        ORDER BY mh.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countHistory" resultType="long">
+        SELECT COUNT(*)
+        FROM mastery_history mh
+        WHERE mh.course_id = #{courseId} AND mh.student_id = #{studentId}
+        <if test="nodeId != null">
+            AND mh.knowledge_node_id = #{nodeId}
+        </if>
+    </select>
+
+</mapper>

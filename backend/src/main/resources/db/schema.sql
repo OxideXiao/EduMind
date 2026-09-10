@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
     real_name     varchar(100),
     email         varchar(150),
     phone         varchar(30),
+    user_no       varchar(100),
     avatar_url    varchar(500),
+    must_change_password boolean NOT NULL DEFAULT false,
     status        varchar(30)  NOT NULL DEFAULT 'active',
     created_at    timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    timestamp    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -23,6 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 CREATE INDEX IF NOT EXISTS idx_users_email    ON users (email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_users_user_no ON users (user_no) WHERE user_no IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS roles (
     id        serial       PRIMARY KEY,
