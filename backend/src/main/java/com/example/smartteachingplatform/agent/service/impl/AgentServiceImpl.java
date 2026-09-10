@@ -10,6 +10,7 @@ import com.example.smartteachingplatform.auth.mapper.UserMapper;
 import com.example.smartteachingplatform.course.entity.Course;
 import com.example.smartteachingplatform.course.mapper.CourseMapper;
 import com.example.smartteachingplatform.memory.service.MemoryService;
+import com.example.smartteachingplatform.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -36,6 +37,7 @@ public class AgentServiceImpl implements AgentService {
     private final CourseMapper courseMapper;
     private final AnalyticsService analyticsService;
     private final AnalyticsMapper analyticsMapper;
+    private final NotificationService notificationService;
 
     private static final Duration AGENT_TIMEOUT = Duration.ofSeconds(30);
 
@@ -266,10 +268,23 @@ public class AgentServiceImpl implements AgentService {
             return;
         }
 
-        // TODO: 将 Agent 返回的提醒内容写入 notifications 表
-        log.info("Agent 提醒生成成功: studentId={}, title={}",
+        Map<String, Object> reminder = agentResp.getData() != null ? agentResp.getData() : Map.of();
+        String title = asString(reminder.getOrDefault("title", "学习提醒"));
+        String content = asString(reminder.getOrDefault("content", ""));
+        String priority = asString(reminder.getOrDefault("priority", "NORMAL"));
+        if (content.isBlank()) {
+            content = "请查看本周学习计划，并优先完成薄弱知识点复习。";
+        }
+
+        Long notificationId = notificationService.createInternal(
                 request.getStudentId(),
-                ((Map<String, Object>) agentResp.getData()).getOrDefault("title", ""));
+                courseId,
+                "REMINDER",
+                title,
+                content
+        );
+        log.info("Agent 提醒生成并写入通知: studentId={}, notificationId={}, priority={}, title={}",
+                request.getStudentId(), notificationId, priority, title);
     }
 
     // ────────────── Heartbeat 状态 ──────────────
@@ -282,5 +297,9 @@ public class AgentServiceImpl implements AgentService {
         resp.setTotalStudents(0);
         resp.setRemindedCount(0);
         return resp;
+    }
+
+    private String asString(Object value) {
+        return value == null ? "" : String.valueOf(value);
     }
 }

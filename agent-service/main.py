@@ -16,7 +16,7 @@ from services.heartbeat_service import heartbeat_service
 from services.learning_plan_service import learning_plan_service
 from services.spring_client import spring_client
 from chains.learning_plan import build_learning_plan_chain, parse_plan_output
-from chains.heartbeat import build_reminder_chain, parse_reminder_output
+from chains.heartbeat import build_fallback_reminder, build_reminder_chain, parse_reminder_output
 from chains.memory import build_memory_update_chain, parse_memory_output
 from prompts.teaching_suggestion import (
     TEACHING_SUGGESTION_SYSTEM_PROMPT,
@@ -82,16 +82,27 @@ async def generate_reminder(req: ReminderRequest):
     """生成智能提醒（单学生）"""
     logger.info(f"生成提醒: student_id={req.student_id}")
     try:
-        chain = build_reminder_chain()
-        raw = await chain.ainvoke({
-            "student_name": req.student_name,
-            "completion_rate": f"{req.completion_rate:.0%}",
-            "active_days": req.active_days,
-            "at_risk": "是" if req.at_risk else "否",
-            "weak_points": req.weak_points if req.weak_points else ["无"],
-            "memory_json": req.memory_json,
-        })
-        result = parse_reminder_output(raw)
+        try:
+            chain = build_reminder_chain()
+            raw = await chain.ainvoke({
+                "student_name": req.student_name,
+                "completion_rate": f"{req.completion_rate:.0%}",
+                "active_days": req.active_days,
+                "at_risk": "是" if req.at_risk else "否",
+                "weak_points": req.weak_points if req.weak_points else ["无"],
+                "memory_json": req.memory_json,
+            })
+            result = parse_reminder_output(raw)
+        except Exception as exc:
+            logger.warning(f"LLM提醒生成失败，使用规则降级提醒: {exc}")
+            result = build_fallback_reminder(
+                student_name=req.student_name,
+                completion_rate=req.completion_rate,
+                active_days=req.active_days,
+                at_risk=req.at_risk,
+                weak_points=req.weak_points,
+                memory_json=req.memory_json,
+            )
         return AgentResponse(success=True, data=result)
     except Exception as e:
         logger.error(f"提醒生成失败: {e}")

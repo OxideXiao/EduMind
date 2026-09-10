@@ -15,7 +15,9 @@ REMINDER_SYSTEM_PROMPT = """你是CoStrict AI学习平台的智能提醒助手�
 {{
   "title": "提醒标题（8字以内）",
   "content": "提醒正文",
-  "priority": "HIGH 或 NORMAL"
+  "priority": "HIGH 或 NORMAL",
+  "risk_reasons": ["触发提醒的原因"],
+  "next_action": "学生下一步最该做什么"
 }}
 只输出JSON，不要有其他内容。"""
 

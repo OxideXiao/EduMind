@@ -115,10 +115,15 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             DailyStatsResponse.StudentStats ss = new DailyStatsResponse.StudentStats();
             ss.setStudentId(studentId);
             ss.setStudentName((String) s.get("student_name"));
-            ss.setCompletionRate(BigDecimal.valueOf(analyticsMapper.studentCompletionRate(courseId, studentId)));
-            ss.setActiveDaysThisWeek(analyticsMapper.studentActiveDays(courseId, studentId));
-            ss.setQuizAvgScore(BigDecimal.valueOf(analyticsMapper.studentQuizAvg(courseId, studentId)));
-            ss.setAtRisk(false); // 简化，由 dashboard 判断
+            BigDecimal completionRate = BigDecimal.valueOf(analyticsMapper.studentCompletionRate(courseId, studentId));
+            int activeDays = analyticsMapper.studentActiveDays(courseId, studentId);
+            BigDecimal quizAvgScore = BigDecimal.valueOf(analyticsMapper.studentQuizAvg(courseId, studentId));
+            ss.setCompletionRate(completionRate);
+            ss.setActiveDaysThisWeek(activeDays);
+            ss.setQuizAvgScore(quizAvgScore);
+            ss.setAtRisk(activeDays <= 1
+                    || quizAvgScore.compareTo(BigDecimal.valueOf(40)) < 0
+                    || completionRate.compareTo(BigDecimal.valueOf(0.4)) < 0);
 
             List<Map<String, Object>> masteryRows = analyticsMapper.studentMasteryMap(courseId, studentId);
             Map<String, BigDecimal> masteryMap = new LinkedHashMap<>();
