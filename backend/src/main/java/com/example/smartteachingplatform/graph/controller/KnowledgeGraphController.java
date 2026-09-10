@@ -2,6 +2,8 @@ package com.example.smartteachingplatform.graph.controller;
 
 import com.example.smartteachingplatform.common.response.Result;
 import com.example.smartteachingplatform.common.util.SecurityUtils;
+import com.example.smartteachingplatform.graph.dto.EdgeRequest;
+import com.example.smartteachingplatform.graph.dto.NodeRequest;
 import com.example.smartteachingplatform.graph.service.KnowledgeGraphService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,5 +40,30 @@ public class KnowledgeGraphController {
     public Result<Map<String, Object>> getNodeStudents(@PathVariable Long courseId,
                                                         @PathVariable Long nodeId) {
         return Result.success(knowledgeGraphService.getNodeStudents(courseId, nodeId));
+    }
+
+    @GetMapping("/{courseId}/nodes")
+    @PreAuthorize("isAuthenticated()")
+    public Result<Map<String, Object>> getNodes(@PathVariable Long courseId,
+                                                @RequestParam(defaultValue = "1") int page,
+                                                @RequestParam(defaultValue = "100") int pageSize) {
+        return Result.success(knowledgeGraphService.queryNodes(
+                courseId, SecurityUtils.getUserId(), page, pageSize));
+    }
+
+    @PostMapping("/{courseId}/nodes")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result<Map<String, Object>> createNode(@PathVariable Long courseId,
+                                                  @RequestBody NodeRequest request) {
+        return Result.success(knowledgeGraphService.createNode(
+                courseId, SecurityUtils.getUserId(), request));
+    }
+
+    @PostMapping("/{courseId}/edges")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result<Map<String, Object>> createEdge(@PathVariable Long courseId,
+                                                  @RequestBody EdgeRequest request) {
+        return Result.success(knowledgeGraphService.createEdge(
+                courseId, SecurityUtils.getUserId(), request));
     }
 }

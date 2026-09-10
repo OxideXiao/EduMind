@@ -1,5 +1,6 @@
 package com.example.smartteachingplatform.graph.mapper;
 
+import com.example.smartteachingplatform.graph.dto.NodeQueryResponse;
 import com.example.smartteachingplatform.graph.entity.KnowledgeNode;
 import org.apache.ibatis.annotations.*;
 
@@ -63,10 +64,14 @@ public interface KnowledgeNodeMapper {
     @Select("SELECT * FROM knowledge_nodes WHERE id = #{id}")
     KnowledgeNode findById(@Param("id") Long id);
 
+    /** 按课程 + 节点编码查单个节点 */
+    @Select("SELECT * FROM knowledge_nodes WHERE course_id = #{courseId} AND node_code = #{nodeCode}")
+    KnowledgeNode findByCode(@Param("courseId") Long courseId, @Param("nodeCode") String nodeCode);
+
     /** 插入单个知识点节点 */
-    @Insert("INSERT INTO knowledge_nodes (course_id, parent_id, node_name, node_desc, " +
+    @Insert("INSERT INTO knowledge_nodes (course_id, parent_id, node_name, node_desc, node_code, " +
             "difficulty, sort_order, x_position, y_position, status, created_at, updated_at) " +
-            "VALUES (#{courseId}, #{parentId}, #{nodeName}, #{nodeDesc}, #{difficulty}, " +
+            "VALUES (#{courseId}, #{parentId}, #{nodeName}, #{nodeDesc}, #{nodeCode}, #{difficulty}, " +
             "#{sortOrder}, #{xPosition}, #{yPosition}, #{status}, NOW(), NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(KnowledgeNode node);
@@ -86,4 +91,58 @@ public interface KnowledgeNodeMapper {
             "ORDER BY COALESCE(km.mastery_score, 0) ASC")
     List<Map<String, Object>> findStudentsByNodeId(@Param("courseId") Long courseId,
                                                      @Param("nodeId") Long nodeId);
+
+    @Update("UPDATE knowledge_nodes SET node_name = #{nodeName}, node_desc = #{nodeDesc}, " +
+            "sort_order = #{sortOrder}, updated_at = NOW() WHERE id = #{id}")
+    int update(KnowledgeNode node);
+
+    @Update("UPDATE knowledge_nodes SET parent_id = #{parentId}, updated_at = NOW() WHERE id = #{id}")
+    int updateParent(@Param("id") Long id, @Param("parentId") Long parentId);
+
+    @Select("SELECT kn.id AS node_id, kn.node_code, kn.node_name AS name, kn.node_desc AS description, " +
+            "kn.difficulty, kn.parent_id, parent.node_code AS parent_code, " +
+            "kn.sort_order AS sort_order, kn.status " +
+            "FROM knowledge_nodes kn " +
+            "LEFT JOIN knowledge_nodes parent ON kn.parent_id = parent.id " +
+            "WHERE kn.course_id = #{courseId} AND kn.status = 'active' " +
+            "ORDER BY kn.sort_order " +
+            "LIMIT #{limit} OFFSET #{offset}")
+    @Results({
+            @Result(column = "node_id", property = "nodeId"),
+            @Result(column = "node_code", property = "nodeCode"),
+            @Result(column = "name", property = "name"),
+            @Result(column = "description", property = "description"),
+            @Result(column = "difficulty", property = "difficulty"),
+            @Result(column = "parent_id", property = "parentId"),
+            @Result(column = "parent_code", property = "parentCode"),
+            @Result(column = "sort_order", property = "sortOrder"),
+            @Result(column = "status", property = "status")
+    })
+    List<NodeQueryResponse> findNodesByCourseId(@Param("courseId") Long courseId,
+                                                @Param("offset") int offset,
+                                                @Param("limit") int limit);
+
+    @Select("SELECT COUNT(*) FROM knowledge_nodes WHERE course_id = #{courseId} AND status = 'active'")
+    int countByCourseId(@Param("courseId") Long courseId);
+
+    @Update("UPDATE knowledge_nodes SET node_code = #{nodeCode}, node_name = #{nodeName}, " +
+            "node_desc = #{nodeDesc}, difficulty = #{difficulty}, parent_id = #{parentId}, " +
+            "sort_order = #{sortOrder}, updated_at = NOW() WHERE id = #{id}")
+    int updateNode(KnowledgeNode node);
+
+
+    @Delete("DELETE FROM knowledge_nodes WHERE id = #{id}")
+    int deleteById(@Param("id") Long id);
+
+    @Select("SELECT COUNT(*) FROM knowledge_nodes WHERE parent_id = #{nodeId}")
+    int countChildren(@Param("nodeId") Long nodeId);
+
+    @Select("SELECT COUNT(*) FROM questions WHERE knowledge_node_id = #{nodeId}")
+    int countQuestionsByNodeId(@Param("nodeId") Long nodeId);
+
+    @Select("SELECT COUNT(*) FROM resource_knowledge WHERE knowledge_node_id = #{nodeId}")
+    int countResourcesByNodeId(@Param("nodeId") Long nodeId);
+
+    @Select("SELECT COUNT(*) FROM knowledge_mastery WHERE knowledge_node_id = #{nodeId}")
+    int countMasteryByNodeId(@Param("nodeId") Long nodeId);
 }
