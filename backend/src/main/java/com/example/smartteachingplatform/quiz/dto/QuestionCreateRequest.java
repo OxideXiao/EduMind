@@ -1,7 +1,6 @@
 package com.example.smartteachingplatform.quiz.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
@@ -9,14 +8,14 @@ import java.util.List;
 @Data
 public class QuestionCreateRequest {
 
-    @NotNull
-    private Long nodeId;
+    private String questionCode;
+    private List<Long> nodeIds;
 
     @NotBlank
     private String type;
 
     @NotBlank
-    private String content;
+    private String stem;
 
     private List<OptionItem> options;
 
@@ -29,7 +28,7 @@ public class QuestionCreateRequest {
     @Data
     public static class OptionItem {
         private String label;
-        private String text;
+        private String content;
         private Boolean isCorrect;
     }
 }

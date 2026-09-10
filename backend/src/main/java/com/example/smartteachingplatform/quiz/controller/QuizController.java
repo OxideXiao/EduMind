@@ -19,21 +19,6 @@ public class QuizController {
 
     private final QuizService quizService;
 
-    /** 创建题目 — TEACHER */
-    @PostMapping("/api/courses/{courseId}/questions")
-    @PreAuthorize("hasRole('TEACHER')")
-    public Result<Map<String, Object>> createQuestion(@PathVariable Long courseId,
-                                                       @Valid @RequestBody QuestionCreateRequest request) {
-        try {
-            Long teacherId = getCurrentUserId();
-            Long questionId = quizService.createQuestion(courseId, teacherId, request);
-            return Result.success(Map.of("questionId", questionId));
-        } catch (Exception e) {
-            log.error("创建题目失败: {}", e.getMessage());
-            return Result.error("创建题目失败: " + e.getMessage());
-        }
-    }
-
     /** 创建测验 — TEACHER */
     @PostMapping("/api/courses/{courseId}/quizzes")
     @PreAuthorize("hasRole('TEACHER')")
