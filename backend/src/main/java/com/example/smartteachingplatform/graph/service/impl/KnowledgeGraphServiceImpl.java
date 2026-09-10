@@ -3,6 +3,7 @@ package com.example.smartteachingplatform.graph.service.impl;
 import com.example.smartteachingplatform.common.exception.BusinessException;
 import com.example.smartteachingplatform.course.entity.CourseMember;
 import com.example.smartteachingplatform.course.mapper.CourseMemberMapper;
+import com.example.smartteachingplatform.graph.dto.NodeQueryResponse;
 import com.example.smartteachingplatform.graph.entity.KnowledgeEdge;
 import com.example.smartteachingplatform.graph.entity.KnowledgeNode;
 import com.example.smartteachingplatform.graph.mapper.KnowledgeEdgeMapper;
@@ -176,6 +177,27 @@ public class KnowledgeGraphServiceImpl implements KnowledgeGraphService {
         result.put("classAvgLevel", computeLevel(avgScore));
         result.put("totalStudents", count);
         result.put("students", students);
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> queryNodes(Long courseId, Long userId, int page, int pageSize) {
+        CourseMember member = courseMemberMapper.findByCourseIdAndUserId(courseId, userId);
+        if (member == null) {
+            throw new BusinessException(403, "你不是该课程的成员");
+        }
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 100;
+
+        int total = knowledgeNodeMapper.countByCourseId(courseId);
+        int offset = (page - 1) * pageSize;
+        List<NodeQueryResponse> items = knowledgeNodeMapper.findNodesByCourseId(courseId, offset, pageSize);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("items", items);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("pageSize", pageSize);
         return result;
     }
 

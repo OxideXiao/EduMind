@@ -9,4 +9,6 @@ public interface KnowledgeGraphService {
     Map<String, Object> getStudentGraph(Long courseId, Long studentId, Long userId, String userRole);
     /** 获取某知识点下所有学生的掌握度列表 */
     Map<String, Object> getNodeStudents(Long courseId, Long nodeId);
+
+    Map<String, Object> queryNodes(Long courseId, Long userId, int page, int pageSize);
 }

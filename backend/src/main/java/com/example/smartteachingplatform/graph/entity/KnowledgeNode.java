@@ -16,6 +16,7 @@ public class KnowledgeNode {
     private Long parentId;
     private String nodeName;
     private String nodeDesc;
+    private String nodeCode;
     private Integer difficulty;
     private Integer sortOrder;
     private BigDecimal xPosition;

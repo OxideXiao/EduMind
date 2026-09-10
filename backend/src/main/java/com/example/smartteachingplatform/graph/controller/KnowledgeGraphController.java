@@ -39,4 +39,13 @@ public class KnowledgeGraphController {
                                                         @PathVariable Long nodeId) {
         return Result.success(knowledgeGraphService.getNodeStudents(courseId, nodeId));
     }
+
+    @GetMapping("/{courseId}/nodes")
+    @PreAuthorize("isAuthenticated()")
+    public Result<Map<String, Object>> getNodes(@PathVariable Long courseId,
+                                                @RequestParam(defaultValue = "1") int page,
+                                                @RequestParam(defaultValue = "100") int pageSize) {
+        return Result.success(knowledgeGraphService.queryNodes(
+                courseId, SecurityUtils.getUserId(), page, pageSize));
+    }
 }
