@@ -16,6 +16,7 @@ public class User {
     private String realName;
     private String email;
     private String phone;
+    private String userNo;
     private String avatarUrl;
     private String status;
     private LocalDateTime createdAt;
