@@ -18,11 +18,16 @@ from services.spring_client import spring_client
 from chains.learning_plan import build_learning_plan_chain, parse_plan_output
 from chains.heartbeat import build_reminder_chain, parse_reminder_output
 from chains.memory import build_memory_update_chain, parse_memory_output
+from chains.teaching_suggestion import (
+    build_fallback_teaching_suggestion,
+    build_teaching_suggestion_chain,
+    parse_teaching_suggestion_output,
+)
 from prompts.teaching_suggestion import (
     TEACHING_SUGGESTION_SYSTEM_PROMPT,
     TEACHING_SUGGESTION_USER_TEMPLATE,
 )
-from chains.base import get_llm
+from chains.base import get_llm, llm_config_snapshot
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from utils.logger import logger
@@ -137,34 +142,31 @@ async def generate_teaching_suggestion(req: TeachingSuggestionRequest):
     """生成教学建议"""
     logger.info(f"生成教学建议: teacher_id={req.teacher_id}, course_id={req.course_id}")
     try:
-        llm = get_llm(temperature=0.5)
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", TEACHING_SUGGESTION_SYSTEM_PROMPT),
-            ("user", TEACHING_SUGGESTION_USER_TEMPLATE),
-        ])
-        chain = prompt | llm | StrOutputParser()
-
         # 格式化掌握度
         mastery_lines = []
         for kp, score in req.class_avg_mastery.items():
             level = "🟢" if score >= 0.7 else ("🟡" if score >= 0.4 else "🔴")
             mastery_lines.append(f"  - {kp}: {score:.0%} {level}")
-        mastery_str = "\n".join(mastery_lines)
+        mastery_str = "\n".join(mastery_lines) or "暂无班级掌握度数据"
 
-        raw = await chain.ainvoke({
-            "course_id": req.course_id,
-            "class_avg_mastery": mastery_str,
-            "weak_knowledge_points": req.weak_knowledge_points,
-            "at_risk_student_count": req.at_risk_student_count,
-        })
-
-        # 解析JSON
-        import json
-        cleaned = raw.strip()
-        if cleaned.startswith("```"):
-            lines = cleaned.split("\n")
-            cleaned = "\n".join(lines[1:-1])
-        result = json.loads(cleaned)
+        try:
+            chain = build_teaching_suggestion_chain()
+            raw = await chain.ainvoke({
+                "course_id": req.course_id,
+                "course_name": req.course_name,
+                "class_avg_mastery": mastery_str,
+                "weak_knowledge_points": req.weak_knowledge_points,
+                "at_risk_student_count": req.at_risk_student_count,
+            })
+            result = parse_teaching_suggestion_output(raw)
+        except Exception as e:
+            logger.warning(f"LLM教学建议生成失败，使用规则降级建议: {e}")
+            result = build_fallback_teaching_suggestion(
+                course_name=req.course_name,
+                class_avg_mastery=req.class_avg_mastery,
+                weak_knowledge_points=req.weak_knowledge_points,
+                at_risk_student_count=req.at_risk_student_count,
+            )
         return AgentResponse(success=True, data=result)
     except Exception as e:
         logger.error(f"教学建议生成失败: {e}")

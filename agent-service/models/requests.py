@@ -32,8 +32,8 @@ class TeachingSuggestionRequest(BaseModel):
     teacher_id: int
     course_id: int
     course_name: str = ""
-    class_avg_mastery: Dict[str, float] = {}
-    weak_knowledge_points: List = []      # 接受 int(nodeId) 或 str(name)
+    class_avg_mastery: Dict[str, float] = Field(default_factory=dict)
+    weak_knowledge_points: List = Field(default_factory=list)      # 接受 int(nodeId) 或 str(name)
     at_risk_student_count: int = 0
 
 

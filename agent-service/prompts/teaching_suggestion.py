@@ -9,18 +9,26 @@ TEACHING_SUGGESTION_SYSTEM_PROMPT = """你是CoStrict AI平台的教学辅助专
 2. 对有风险的学生数量给出关注建议
 3. 给教师提供具体的教学调整建议
 4. 如果可能，建议分组教学策略
+5. 说明建议依据，避免空泛表达
+6. 给出课后可以直接执行的动作
 
 ## 输出格式
 {{
   "summary": "班级整体评估（50字以内）",
+  "data_basis": ["数据依据1", "数据依据2"],
   "weak_knowledge_points": ["最薄弱知识点1", "知识点2"],
   "teaching_suggestions": ["具体建议1", "建议2", "建议3"],
-  "grouping_strategy": "分组教学建议（可选）",
-  "risk_alert": "预警提示（如有风险学生超过30%）"
+  "grouping_strategy": "分组教学建议",
+  "resource_strategy": "资源补充建议",
+  "assessment_strategy": "后续测验与看板跟踪建议",
+  "risk_alert": "预警提示",
+  "next_actions": ["课后动作1", "课后动作2"],
+  "priority": "HIGH / MEDIUM / NORMAL"
 }}
 只输出JSON，不要有其他内容。"""
 
 TEACHING_SUGGESTION_USER_TEMPLATE = """课程ID：{course_id}
+课程名称：{course_name}
 班级平均掌握度：
 {class_avg_mastery}
 
