@@ -227,11 +227,58 @@ export interface QuizBrief { quizId: number; name: string; deadline?: string }
 export interface NodeLearningData { node: NodeInfo; resources: ResourceItem[]; quizzes: QuizBrief[] }
 
 // ═══ 测验 ═══
-export interface QuizQuestion { id: number; content: string; type: 'SINGLE' | 'JUDGE'; options: string[]; score: number }
-export interface Quiz { id: number; name: string; courseId: number; nodeId: number; questions: QuizQuestion[]; deadline?: string }
+export interface QuizOption {
+  label: string;
+  content: string;
+  /** 仅教师作答记录可见 */
+  isCorrect?: boolean;
+}
+
+export interface QuizQuestion {
+  id: number;
+  content: string;
+  type: 'SINGLE' | 'JUDGE' | 'MULTIPLE' | 'SHORT' | 'FILE';
+  options: QuizOption[];
+  score: number;
+}
+
+export interface Quiz {
+  id: number;
+  name: string;
+  courseId: number;
+  nodeId: number;
+  questions: QuizQuestion[];
+  deadline?: string;
+}
+
+/** POST /api/quizzes/{id}/attempts 提交响应 */
 export interface SubmitResult {
-  score: number; totalScore: number;
+  submissionId?: number;
+  score: number;
+  totalScore: number;
   masteryUpdates: Array<{ nodeId: number; label: string; change: number }>;
+}
+
+/** GET /api/quiz-submissions/{submissionId} 逐题明细 */
+export interface QuizSubmissionAnswer {
+  questionId: number;
+  type: string;
+  stem: string;
+  options: QuizOption[];
+  studentAnswer: string;
+  /** 仅教师 */
+  correctAnswer?: string;
+  isCorrect?: boolean;
+  score?: number;
+  analysis?: string;
+}
+
+export interface QuizSubmissionRecord {
+  submissionId: number;
+  score: number;
+  totalScore: number;
+  submittedAt: string;
+  answers: QuizSubmissionAnswer[];
 }
 
 // ═══ 学情看板 ═══

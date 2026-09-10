@@ -601,7 +601,10 @@ export function buildMockQuizDetail(quizId: number): Quiz | null {
         id: q.id,
         content: q.content,
         type: q.type as 'SINGLE' | 'JUDGE',
-        options: q.options ?? (q.type === 'JUDGE' ? ['正确', '错误'] : []),
+        options: (q.options ?? (q.type === 'JUDGE' ? ['正确', '错误'] : [])).map((text, i) => ({
+          label: String.fromCharCode(65 + i),
+          content: text,
+        })),
         score: q.score,
       }));
     if (questions.length === 0) {
