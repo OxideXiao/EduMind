@@ -106,6 +106,7 @@ class SpringClient:
             self.client = httpx.AsyncClient(
                 timeout=30.0,
                 headers={"X-Internal-Token": INTERNAL_TOKEN},
+                trust_env=False,
             )
 
     async def close(self):

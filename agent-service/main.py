@@ -22,7 +22,7 @@ from prompts.teaching_suggestion import (
     TEACHING_SUGGESTION_SYSTEM_PROMPT,
     TEACHING_SUGGESTION_USER_TEMPLATE,
 )
-from chains.base import get_llm
+from chains.base import get_llm, llm_config_snapshot
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from utils.logger import logger
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="CoStrict AI Agent Service",
+    title="EduMind AI Agent Service",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -54,7 +54,52 @@ app.add_middleware(
 # ─── 健康检查 ───
 @app.get("/health")
 async def health():
-    return {"status": "ok", "mock_mode": MOCK_SPRING, "engine": AGENT_ENGINE}
+    return {
+        "status": "ok",
+        "mock_mode": MOCK_SPRING,
+        "engine": AGENT_ENGINE,
+        "llm": llm_config_snapshot(),
+    }
+
+
+@app.get("/api/agent/capabilities")
+async def capabilities():
+    """返回当前 Agent 服务能力，供联调和部署检查使用。"""
+    return AgentResponse(
+        success=True,
+        data={
+            "service": "EduMind AI Agent Service",
+            "engine": AGENT_ENGINE,
+            "mock_mode": MOCK_SPRING,
+            "llm": llm_config_snapshot(),
+            "capabilities": [
+                {
+                    "key": "learning_plan",
+                    "name": "学生学习计划生成",
+                    "endpoint": "/api/agent/learning-plan",
+                    "status": "available",
+                },
+                {
+                    "key": "teaching_suggestion",
+                    "name": "教师教学建议生成",
+                    "endpoint": "/api/agent/teaching-suggestion",
+                    "status": "available",
+                },
+                {
+                    "key": "risk_reminder",
+                    "name": "学情预警提醒",
+                    "endpoint": "/api/agent/reminder",
+                    "status": "available",
+                },
+                {
+                    "key": "heartbeat",
+                    "name": "Heartbeat 批量扫描",
+                    "endpoint": "/api/agent/heartbeat",
+                    "status": "available",
+                },
+            ],
+        },
+    )
 
 
 # ─── 模块6：学习计划生成 ───
