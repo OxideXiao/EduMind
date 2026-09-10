@@ -38,4 +38,32 @@ public interface ResourceMapper {
             "  AND q.status = 'published'")
     List<Map<String, Object>> findQuizzesByKnowledgeNodeId(@Param("courseId") Long courseId,
                                                             @Param("nodeId") Long nodeId);
+
+    /** 分页查询课程资源 */
+    @Select("SELECT * FROM resources WHERE course_id = #{courseId} " +
+            "ORDER BY created_at DESC LIMIT #{limit} OFFSET #{offset}")
+    List<Resource> findResourcesByCourseId(@Param("courseId") Long courseId,
+                                           @Param("offset") int offset,
+                                           @Param("limit") int limit);
+
+    /** 课程资源总数 */
+    @Select("SELECT COUNT(*) FROM resources WHERE course_id = #{courseId}")
+    int countByCourseId(@Param("courseId") Long courseId);
+
+
+    List<Map<String, Object>> findNodeIdsByResourceIds(@Param("resourceIds") List<Long> resourceIds);
+
+    @Select("SELECT * FROM resources WHERE id = #{id}")
+    Resource findById(@Param("id") Long id);
+
+    @Update("UPDATE resources SET resource_name = #{resourceName}, resource_type = #{resourceType}, " +
+            "file_url = #{fileUrl}, description = #{description}, updated_at = NOW() " +
+            "WHERE id = #{id}")
+    int update(Resource resource);
+
+    @Delete("DELETE FROM resources WHERE id = #{id}")
+    int deleteById(@Param("id") Long id);
+
+    @Delete("DELETE FROM resource_knowledge WHERE resource_id = #{resourceId}")
+    int deleteBindingsByResourceId(@Param("resourceId") Long resourceId);
 }

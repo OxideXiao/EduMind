@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.smartteachingplatform.resource.mapper.ResourceMapper">
+
+    <!-- 批量查询资源关联的节点 id（避免 N+1） -->
+    <select id="findNodeIdsByResourceIds" resultType="map">
+        SELECT resource_id, knowledge_node_id
+        FROM resource_knowledge
+        WHERE resource_id IN
+        <foreach collection="resourceIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>
