@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.smartteachingplatform.quiz.mapper.QuizMapper">
+
+    <select id="findPageByCourseId" resultType="com.example.smartteachingplatform.quiz.dto.QuizListItemResponse">
+        SELECT q.id          AS quiz_id,
+        q.title,
+        q.description,
+        q.start_time,
+        q.end_time,
+        q.total_score,
+        q.attempt_limit,
+        q.status,
+        (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS question_count
+        FROM quizzes q
+        WHERE q.course_id = #{courseId}
+        <if test="studentOnly">
+            AND q.status = 'published'
+            AND (q.start_time IS NULL OR q.start_time &lt;= NOW())
+            AND (q.end_time IS NULL OR q.end_time &gt;= NOW())
+        </if>
+        ORDER BY q.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByCourseId" resultType="long">
+        SELECT COUNT(*)
+        FROM quizzes q
+        WHERE q.course_id = #{courseId}
+        <if test="studentOnly">
+            AND q.status = 'published'
+            AND (q.start_time IS NULL OR q.start_time &lt;= NOW())
+            AND (q.end_time IS NULL OR q.end_time &gt;= NOW())
+        </if>
+    </select>
+
+</mapper>

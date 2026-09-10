@@ -2,6 +2,10 @@ package com.example.smartteachingplatform.quiz.service.impl;
 
 import com.example.smartteachingplatform.agent.dto.TriggerReminderRequest;
 import com.example.smartteachingplatform.agent.service.AgentService;
+import com.example.smartteachingplatform.common.exception.BusinessException;
+import com.example.smartteachingplatform.course.entity.CourseMember;
+import com.example.smartteachingplatform.course.mapper.CourseMapper;
+import com.example.smartteachingplatform.course.mapper.CourseMemberMapper;
 import com.example.smartteachingplatform.graph.entity.KnowledgeNode;
 import com.example.smartteachingplatform.graph.mapper.KnowledgeNodeMapper;
 import com.example.smartteachingplatform.quiz.dto.*;
@@ -30,6 +34,8 @@ public class QuizServiceImpl implements QuizService {
     private final SubmissionMapper submissionMapper;
     private final KnowledgeNodeMapper knowledgeNodeMapper;
     private final AgentService agentService;
+    private final CourseMapper courseMapper;
+    private final CourseMemberMapper courseMemberMapper;
 
     // ────────── 创建题目 ──────────
 
@@ -67,63 +73,113 @@ public class QuizServiceImpl implements QuizService {
     @Override
     @Transactional
     public Long createQuiz(Long courseId, Long teacherId, QuizCreateRequest request) {
+        assertCourseTeacher(courseId, teacherId);
+        normalize(request);
+
         Quiz quiz = new Quiz();
         quiz.setCourseId(courseId);
-        quiz.setTitle(request.getName());
+        quiz.setTitle(request.getTitle());
         quiz.setDescription(request.getDescription());
-        quiz.setEndTime(request.getDeadline());
-        quiz.setStatus("published");
+        quiz.setStartTime(request.getStartTime());
+        quiz.setEndTime(request.getEndTime());
+        quiz.setAttemptLimit(request.getAttemptLimit());
+        quiz.setStatus("draft");
+        quiz.setTotalScore(validateAndSumQuestions(courseId, request.getQuestions()));
         quiz.setCreatedBy(teacherId);
-
-        BigDecimal perQuestion = BigDecimal.valueOf(10);
-        quiz.setTotalScore(perQuestion.multiply(BigDecimal.valueOf(request.getQuestionIds().size())));
         quizMapper.insert(quiz);
 
-        int order = 0;
-        for (Long questionId : request.getQuestionIds()) {
-            quizMapper.insertQuizQuestion(quiz.getId(), questionId, perQuestion, order++);
-        }
-        log.info("测验创建成功: id={}, questions={}", quiz.getId(), request.getQuestionIds().size());
+        bindQuestions(quiz.getId(), request.getQuestions());
         return quiz.getId();
+    }
+
+    @Override
+    @Transactional
+    public Long updateQuiz(Long quizId, Long teacherId, QuizCreateRequest request) {
+        Quiz quiz = quizMapper.findById(quizId);
+        if (quiz == null) {
+            throw new BusinessException(404, "测验不存在");
+        }
+        assertCourseTeacher(quiz.getCourseId(), teacherId);
+        if (!"draft".equals(quiz.getStatus())) {
+            throw new BusinessException(409, "仅草稿状态可编辑");
+        }
+        normalize(request);
+
+        quiz.setTitle(request.getTitle());
+        quiz.setDescription(request.getDescription());
+        quiz.setStartTime(request.getStartTime());
+        quiz.setEndTime(request.getEndTime());
+        quiz.setAttemptLimit(request.getAttemptLimit());
+        quiz.setTotalScore(validateAndSumQuestions(quiz.getCourseId(), request.getQuestions()));
+        quizMapper.update(quiz);
+
+        quizMapper.deleteQuizQuestions(quizId);
+        bindQuestions(quizId, request.getQuestions());
+        return quizId;
+    }
+
+    @Override
+    @Transactional
+    public void deleteQuiz(Long quizId, Long teacherId) {
+        Quiz quiz = quizMapper.findById(quizId);
+        if (quiz == null) {
+            throw new BusinessException(404, "测验不存在");
+        }
+        assertCourseTeacher(quiz.getCourseId(), teacherId);
+        if (!"draft".equals(quiz.getStatus())) {
+            throw new BusinessException(409, "仅草稿状态可删除");
+        }
+        quizMapper.deleteQuizQuestions(quizId);
+        quizMapper.deleteById(quizId);
     }
 
     // ────────── 获取测验详情（不含答案） ──────────
 
     @Override
-    public QuizDetailResponse getQuizDetail(Long quizId) {
+    public QuizDetailResponse getQuizDetail(Long quizId, Long userId) {
         Quiz quiz = quizMapper.findById(quizId);
-        if (quiz == null) throw new RuntimeException("测验不存在");
+        if (quiz == null) {
+            throw new BusinessException(404, "测验不存在");
+        }
+        Long courseId = quiz.getCourseId();
+        Long teacherId = courseMapper.findTeacherIdByCourseId(courseId);
+        boolean isTeacher = userId.equals(teacherId);
+        if (!isTeacher) {
+            CourseMember member = courseMemberMapper.findByCourseIdAndUserId(courseId, userId);
+            if (member == null) {
+                throw new BusinessException(403, "无权限访问该测验");
+            }
+            if (!"published".equals(quiz.getStatus())) {
+                throw new BusinessException(404, "测验不存在");
+            }
+        }
 
         QuizDetailResponse resp = new QuizDetailResponse();
         resp.setQuizId(quiz.getId());
-        resp.setName(quiz.getTitle());
+        resp.setTitle(quiz.getTitle());
         resp.setDescription(quiz.getDescription());
-        resp.setTotalScore(quiz.getTotalScore());
-        resp.setDeadline(quiz.getEndTime());
+        resp.setStartTime(quiz.getStartTime());
+        resp.setEndTime(quiz.getEndTime());
+        resp.setAttemptLimit(quiz.getAttemptLimit());
+        resp.setStatus(quiz.getStatus());
 
-        List<Long> questionIds = quizMapper.findQuestionIdsByQuizId(quizId);
         List<QuizDetailResponse.QuestionItem> items = new ArrayList<>();
-        for (Long qid : questionIds) {
-            Question q = questionMapper.findById(qid);
-            if (q == null) continue;
-
+        for (QuizQuestionRow row : quizMapper.findQuizQuestionRows(quizId)) {
             QuizDetailResponse.QuestionItem item = new QuizDetailResponse.QuestionItem();
-            item.setQuestionId(q.getId());
-            item.setType(q.getQuestionType());
-            item.setContent(q.getStem());
-            BigDecimal score = quizMapper.findQuestionScore(quizId, qid);
-            item.setScore(score != null ? score : BigDecimal.ZERO);
+            item.setQuestionId(row.getQuestionId());
+            item.setType(toApiQuestionType(row.getQuestionType()));
+            item.setStem(row.getStem());
+            item.setScore(row.getScore());
+            item.setSortOrder(row.getSortOrder());
 
-            // 选项不含 is_correct
-            List<QuestionOption> options = questionMapper.findOptionsByQuestionId(qid);
-            if (!options.isEmpty()) {
-                item.setOptions(options.stream().map(o -> {
-                    QuizDetailResponse.OptionItem oi = new QuizDetailResponse.OptionItem();
-                    oi.setLabel(o.getOptionLabel());
-                    oi.setText(o.getOptionContent());
-                    return oi;
-                }).collect(Collectors.toList()));
+            List<QuizDetailResponse.OptionItem> opts = new ArrayList<>();
+            for (QuestionOption o : questionMapper.findOptionsByQuestionId(row.getQuestionId())) {
+                QuizDetailResponse.OptionItem oi = new QuizDetailResponse.OptionItem();
+                oi.setLabel(o.getOptionLabel());
+                oi.setContent(o.getOptionContent());
+                opts.add(oi);
             }
+            item.setOptions(opts);
             items.add(item);
         }
         resp.setQuestions(items);
@@ -264,6 +320,31 @@ public class QuizServiceImpl implements QuizService {
         return resp;
     }
 
+    @Override
+    public Map<String, Object> listQuizzes(Long courseId, Long userId, int page, int pageSize) {
+        Long teacherId = courseMapper.findTeacherIdByCourseId(courseId);
+        boolean isTeacher = userId.equals(teacherId);
+        if (!isTeacher) {
+            CourseMember member = courseMemberMapper.findByCourseIdAndUserId(courseId, userId);
+            if (member == null) {
+                throw new BusinessException(403, "无权限访问该课程");
+            }
+        }
+        boolean studentOnly = !isTeacher;
+        int size = Math.max(1, pageSize);
+        int offset = (Math.max(1, page) - 1) * size;
+        List<QuizListItemResponse> items =
+                quizMapper.findPageByCourseId(courseId, studentOnly, size, offset);
+        long total = quizMapper.countByCourseId(courseId, studentOnly);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("items", items);
+        data.put("total", total);
+        data.put("page", page);
+        data.put("pageSize", pageSize);
+        return data;
+    }
+
     // ────────── 评分逻辑 ──────────
 
     private GradingResult gradeQuestion(Question q, String studentAnswer, BigDecimal maxScore) {
@@ -370,6 +451,76 @@ public class QuizServiceImpl implements QuizService {
         BigDecimal earnedScore;
         GradingResult(boolean isCorrect, BigDecimal earnedScore) {
             this.isCorrect = isCorrect; this.earnedScore = earnedScore;
+        }
+    }
+
+    private String toApiQuestionType(String dbType) {
+        if (dbType == null) return "SHORT_ANSWER";
+        return switch (dbType) {
+            case "single" -> "SINGLE_CHOICE";
+            case "multiple" -> "MULTIPLE_CHOICE";
+            case "judge" -> "TRUE_FALSE";
+            case "blank" -> "FILL_BLANK";
+            case "short_answer" -> "SHORT_ANSWER";
+            default -> dbType.toUpperCase();
+        };
+    }
+
+    /** 兼容旧字段 */
+    private void normalize(QuizCreateRequest request) {
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            request.setTitle(request.getName());
+        }
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw new BusinessException(400, "title 不能为空");
+        }
+        if (request.getEndTime() == null) {
+            request.setEndTime(request.getDeadline());
+        }
+        if (request.getQuestions() == null || request.getQuestions().isEmpty()) {
+            if (request.getQuestionIds() == null || request.getQuestionIds().isEmpty()) {
+                throw new BusinessException(400, "questions 不能为空");
+            }
+            List<QuizCreateRequest.QuestionItem> items = new ArrayList<>();
+            int i = 0;
+            for (Long qid : request.getQuestionIds()) {
+                QuizCreateRequest.QuestionItem item = new QuizCreateRequest.QuestionItem();
+                item.setQuestionId(qid);
+                item.setScore(BigDecimal.TEN);
+                item.setSortOrder(i++);
+                items.add(item);
+            }
+            request.setQuestions(items);
+        }
+    }
+
+    /** 校验题目都属于该课程 */
+    private BigDecimal validateAndSumQuestions(Long courseId, List<QuizCreateRequest.QuestionItem> questions) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (QuizCreateRequest.QuestionItem item : questions) {
+            Question q = questionMapper.findById(item.getQuestionId());
+            if (q == null || !courseId.equals(q.getCourseId())) {
+                throw new BusinessException(400, "题目不属于该课程: " + item.getQuestionId());
+            }
+            total = total.add(item.getScore());
+        }
+        return total;
+    }
+
+    /** 写入题目关联*/
+    private void bindQuestions(Long quizId, List<QuizCreateRequest.QuestionItem> questions) {
+        int order = 0;
+        for (QuizCreateRequest.QuestionItem item : questions) {
+            int sortOrder = item.getSortOrder() != null ? item.getSortOrder() : order;
+            quizMapper.insertQuizQuestion(quizId, item.getQuestionId(), item.getScore(), sortOrder);
+            order++;
+        }
+    }
+
+    private void assertCourseTeacher(Long courseId, Long teacherId) {
+        Long ownerId = courseMapper.findTeacherIdByCourseId(courseId);
+        if (ownerId == null || !ownerId.equals(teacherId)) {
+            throw new BusinessException(403, "无权限操作该课程");
         }
     }
 }

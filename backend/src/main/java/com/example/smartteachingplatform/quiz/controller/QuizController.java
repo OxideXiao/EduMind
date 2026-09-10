@@ -1,6 +1,7 @@
 package com.example.smartteachingplatform.quiz.controller;
 
 import com.example.smartteachingplatform.common.response.Result;
+import com.example.smartteachingplatform.common.util.SecurityUtils;
 import com.example.smartteachingplatform.quiz.dto.*;
 import com.example.smartteachingplatform.quiz.service.QuizService;
 import jakarta.validation.Valid;
@@ -38,27 +39,31 @@ public class QuizController {
     @PostMapping("/api/courses/{courseId}/quizzes")
     @PreAuthorize("hasRole('TEACHER')")
     public Result<Map<String, Object>> createQuiz(@PathVariable Long courseId,
-                                                   @Valid @RequestBody QuizCreateRequest request) {
-        try {
-            Long teacherId = getCurrentUserId();
-            Long quizId = quizService.createQuiz(courseId, teacherId, request);
-            return Result.success(Map.of("quizId", quizId));
-        } catch (Exception e) {
-            log.error("创建测验失败: {}", e.getMessage());
-            return Result.error("创建测验失败: " + e.getMessage());
-        }
+                                                  @Valid @RequestBody QuizCreateRequest request) {
+        Long quizId = quizService.createQuiz(courseId, SecurityUtils.getUserId(), request);
+        return Result.success(Map.of("quizId", quizId, "status", "draft"));
+    }
+
+    @PutMapping("/api/quizzes/{quizId}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result<Map<String, Object>> updateQuiz(@PathVariable Long quizId,
+                                                  @Valid @RequestBody QuizCreateRequest request) {
+        Long id = quizService.updateQuiz(quizId, SecurityUtils.getUserId(), request);
+        return Result.success(Map.of("quizId", id, "status", "draft"));
+    }
+
+    @DeleteMapping("/api/quizzes/{quizId}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Result<Void> deleteQuiz(@PathVariable Long quizId) {
+        quizService.deleteQuiz(quizId, SecurityUtils.getUserId());
+        return Result.success(null);
     }
 
     /** 获取测验详情（不含答案） — STUDENT */
     @GetMapping("/api/quizzes/{quizId}")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasAnyRole('TEACHER','STUDENT')")
     public Result<QuizDetailResponse> getQuiz(@PathVariable Long quizId) {
-        try {
-            return Result.success(quizService.getQuizDetail(quizId));
-        } catch (Exception e) {
-            log.error("获取测验失败: {}", e.getMessage());
-            return Result.error("测验不存在");
-        }
+        return Result.success(quizService.getQuizDetail(quizId, SecurityUtils.getUserId()));
     }
 
     /** 提交测验 — STUDENT */
@@ -73,6 +78,14 @@ public class QuizController {
             log.error("提交测验失败: quizId={}, {}", quizId, e.getMessage());
             return Result.error("提交失败: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/api/courses/{courseId}/quizzes")
+    @PreAuthorize("hasAnyRole('TEACHER','STUDENT')")
+    public Result<Map<String, Object>> listQuizzes(@PathVariable Long courseId,
+                                                   @RequestParam(defaultValue = "1") int page,
+                                                   @RequestParam(defaultValue = "20") int pageSize) {
+        return Result.success(quizService.listQuizzes(courseId, SecurityUtils.getUserId(), page, pageSize));
     }
 
     private Long getCurrentUserId() {
