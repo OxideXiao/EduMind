@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.smartteachingplatform.quiz.mapper.QuestionMapper">
+
+    <select id="findOptionsByQuestionIds"
+            resultType="com.example.smartteachingplatform.quiz.entity.QuestionOption">
+        SELECT * FROM question_options
+        WHERE question_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY id
+    </select>
+
+    <select id="findNodeIdsByQuestionIds" resultType="map">
+        SELECT question_id AS questionId, knowledge_node_id AS knowledgeNodeId
+        FROM question_knowledge
+        WHERE question_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

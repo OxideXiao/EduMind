@@ -31,37 +31,6 @@ public class QuizServiceImpl implements QuizService {
     private final KnowledgeNodeMapper knowledgeNodeMapper;
     private final AgentService agentService;
 
-    // ────────── 创建题目 ──────────
-
-    @Override
-    @Transactional
-    public Long createQuestion(Long courseId, Long teacherId, QuestionCreateRequest request) {
-        Question q = new Question();
-        q.setCourseId(courseId);
-        q.setKnowledgeNodeId(request.getNodeId());
-        q.setQuestionType(mapQuestionType(request.getType()));
-        q.setStem(request.getContent());
-        q.setAnswer(request.getAnswer());
-        q.setAnalysis(request.getAnalysis());
-        q.setDifficulty(request.getDifficulty() != null ? request.getDifficulty() : 1);
-        q.setCreatedBy(teacherId);
-        questionMapper.insert(q);
-
-        // 插入选项
-        if (request.getOptions() != null) {
-            for (QuestionCreateRequest.OptionItem opt : request.getOptions()) {
-                QuestionOption o = new QuestionOption();
-                o.setQuestionId(q.getId());
-                o.setOptionLabel(opt.getLabel());
-                o.setOptionContent(opt.getText());
-                o.setIsCorrect(Boolean.TRUE.equals(opt.getIsCorrect()) ? 1 : 0);
-                questionMapper.insertOption(o);
-            }
-        }
-        log.info("题目创建成功: id={}, type={}", q.getId(), q.getQuestionType());
-        return q.getId();
-    }
-
     // ────────── 创建测验 ──────────
 
     @Override
@@ -333,18 +302,6 @@ public class QuizServiceImpl implements QuizService {
 
     // ────────── 工具方法 ──────────
 
-    /** API 题型 → DB 题型 */
-    private String mapQuestionType(String type) {
-        if (type == null) return "single";
-        return switch (type.toUpperCase()) {
-            case "SINGLE_CHOICE" -> "single";
-            case "MULTIPLE_CHOICE" -> "multiple";
-            case "TRUE_FALSE" -> "judge";
-            case "FILL_BLANK" -> "blank";
-            case "SHORT_ANSWER" -> "short_answer";
-            default -> type.toLowerCase();
-        };
-    }
 
     private String calcMasteryLevel(BigDecimal score) {
         int s = score.intValue();
