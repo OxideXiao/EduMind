@@ -69,6 +69,11 @@ async def generate_learning_plan(req: LearningPlanRequest):
             course_id=req.course_id,
             course_name=req.course_name,
             knowledge_mastery=req.knowledge_mastery,
+            memory_json=req.memory_json,
+            quiz_summary=req.quiz_summary,
+            behavior_summary=req.behavior_summary,
+            resource_candidates=req.resource_candidates,
+            resource_completion_note=req.resource_completion_note,
         )
         return AgentResponse(success=True, data=result)
     except Exception as e:

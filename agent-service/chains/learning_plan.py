@@ -1,4 +1,7 @@
 """学习计划生成链"""
+import json
+import re
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from chains.base import get_llm
@@ -7,7 +10,6 @@ from prompts.learning_plan import (
     LEARNING_PLAN_USER_TEMPLATE,
 )
 from utils.logger import logger
-import json
 
 
 def build_learning_plan_chain():
@@ -48,7 +50,6 @@ def parse_plan_output(raw_output: str) -> dict:
         pass
 
     # 尝试3: 正则提取JSON块
-    import re
     match = re.search(r'\{.*\}', cleaned, re.DOTALL)
     if match:
         try:
@@ -64,6 +65,12 @@ def parse_plan_output(raw_output: str) -> dict:
 def _validate_plan(plan: dict):
     """校验学习计划结构"""
     assert "summary" in plan, "缺少summary"
+    plan.setdefault("generation_basis", ["知识点掌握度", "学生长期记忆"])
+    plan.setdefault("weakness_diagnosis", {})
     assert "short_term" in plan, "缺少short_term"
     assert "daily_plan" in plan["short_term"], "缺少daily_plan"
     assert len(plan["short_term"]["daily_plan"]) > 0, "daily_plan为空"
+    plan.setdefault("mid_term", {"goal": "完成本月阶段复盘", "milestones": []})
+    plan.setdefault("resource_recommendations", [])
+    plan.setdefault("progress_checks", [])
+    plan.setdefault("motivation", "按计划推进，你会看到自己的进步。")

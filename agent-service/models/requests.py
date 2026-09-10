@@ -9,7 +9,11 @@ class LearningPlanRequest(BaseModel):
     course_id: int
     course_name: str
     memory_json: str = "{}"           # 学生记忆JSON字符串
-    knowledge_mastery: Dict[str, float] = {}  # 知识点掌握度
+    knowledge_mastery: Dict[str, float] = Field(default_factory=dict)  # 知识点掌握度
+    quiz_summary: str = ""            # 近期测验摘要
+    behavior_summary: str = ""        # 学习行为摘要
+    resource_candidates: List[Dict] = Field(default_factory=list)  # 可推荐资源候选
+    resource_completion_note: str = "资源完成率暂未接入完整统计"
 
 
 class ReminderRequest(BaseModel):
